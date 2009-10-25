@@ -2,5 +2,11 @@
     "name": "wildfire",
     "dependencies": [
         "narwhal"
-    ]
+    ],
+    "using": {
+        "js": {
+            "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
+            "name": "js"
+        }
+    }
 }

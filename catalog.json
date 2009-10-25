@@ -1,3 +1,10 @@
 {
-    "schema": "1.1"
+    "schema": "1.1",
+    "location": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
+    "packages": {
+        "js": {
+            "location": "http://github.com/cadorn/wildfire/zipball/master/",
+            "path": "packages/js"
+        }
+    }
 }
