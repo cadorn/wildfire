@@ -5,6 +5,10 @@
         "js": {
             "location": "http://github.com/cadorn/wildfire/zipball/master/",
             "path": "packages/js"
+        },
+        "lib-php": {
+            "location": "http://github.com/cadorn/wildfire/zipball/master/",
+            "path": "packages/lib-php"
         }
     }
 }

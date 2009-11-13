@@ -7,6 +7,10 @@
         "js": {
             "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
             "name": "js"
+        },
+        "lib-php": {
+            "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
+            "name": "lib-php"
         }
     }
 }
