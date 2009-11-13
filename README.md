@@ -1,9 +1,9 @@
 Wildfire
 ========
 
-Component to component communication
+Component to component communication used in [FireConsole](http://www.fireconsole.org/).
 
-**STATUS:** *Under development*
+Also see: [http://www.wildfirehq.org/](http://www.wildfirehq.org/)
 
 
 License
