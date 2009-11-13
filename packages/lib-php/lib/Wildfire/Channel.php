@@ -11,6 +11,7 @@ abstract class Wildfire_Channel
     public function enqueueOutgoing(Wildfire_Message $message)
     {
         $this->outgoingQueue[] = $message;
+        return true;
     }
     
     public function getOutgoing()

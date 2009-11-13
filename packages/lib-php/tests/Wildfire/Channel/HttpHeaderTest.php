@@ -19,6 +19,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
         
         $message = new Wildfire_Message();
         $message->setData('Hello World');
+        $message->setMeta('{"line":10}');
         $dispatcher->dispatch($message);
         $dispatcher->dispatch($message);
         
