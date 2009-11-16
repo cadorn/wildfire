@@ -44,8 +44,13 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
         $receiver_index = 0;
         
         $headers = array();
+        
+        $meta = $message->getMeta();
+        if(!$meta) {
+            $meta = '{}';
+        }
 
-        $data = '[' . $message->getMeta() . ',' . json_encode($message->getData()) . ']';
+        $data = '[' . $meta . ',' . json_encode($message->getData()) . ']';
 
         $parts = explode(CHUMK_DELIM, chunk_split($data, $this->headerMaxLength, CHUMK_DELIM));
 

@@ -28,8 +28,8 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($channel->getHeaders(),
             array(
                 'x-wf-protocol-1: http://meta.wildfirehq.org/Protocol/Component/0.1',
-                'x-wf-1-0-0-1: 13|"Hello World"|',
-                'x-wf-1-0-0-2: 13|"Hello World"|'
+                'x-wf-1-0-0-1: 27|[{"line":10},"Hello World"]|',
+                'x-wf-1-0-0-2: 27|[{"line":10},"Hello World"]|'
             )
         );
     }
@@ -58,12 +58,12 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($channel->getHeaders(),
             array(
                 'x-wf-protocol-1: http://meta.wildfirehq.org/Protocol/Component/0.1',
-                'x-wf-1-0-0-1: 24|"line 0\nl|\\',
-                'x-wf-1-0-0-2: |ine 1\\nlin|\\',
-                'x-wf-1-0-0-3: |e 2"|',
-                'x-wf-1-0-0-4: 24|"line 0\\nl|\\',
-                'x-wf-1-0-0-5: |ine 1\\nlin|\\',
-                'x-wf-1-0-0-6: |e 2"|'
+                'x-wf-1-0-0-1: 29|[{},"line |\\',
+                'x-wf-1-0-0-2: |0\nline 1\|\\',
+                'x-wf-1-0-0-3: |nline 2"]|',
+                'x-wf-1-0-0-4: 29|[{},"line |\\',
+                'x-wf-1-0-0-5: |0\nline 1\|\\',
+                'x-wf-1-0-0-6: |nline 2"]|'
             )
         );
     }
