@@ -11,6 +11,10 @@
         "lib-php": {
             "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
             "name": "lib-php"
+        },
+        "lib-js": {
+            "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
+            "name": "lib-js"
         }
     }
 }

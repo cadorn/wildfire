@@ -2,6 +2,7 @@
 
 abstract class Wildfire_Channel
 {    
+    protected $messagePartMaxLength = 5000;
     private $outgoingQueue = array();
 
 
@@ -17,6 +18,12 @@ abstract class Wildfire_Channel
     public function getOutgoing()
     {
         return $this->outgoingQueue;
+    }
+
+
+    public function setMessagePartMaxLength($length)
+    {
+        $this->messagePartMaxLength = $length;
     }
     
 }

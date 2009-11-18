@@ -37,7 +37,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
     public function testLarge()
     {
         $channel = new Wildfire_MessageTest__Wildfire_Channel_HttpHeader();
-        $channel->setHeaderMaxLength(10);
+        $channel->setMessagePartMaxLength(10);
 
         $dispatcher = new Wildfire_Dispatcher();
         $dispatcher->setChannel($channel);
