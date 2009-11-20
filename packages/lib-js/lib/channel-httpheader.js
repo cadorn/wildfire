@@ -29,7 +29,8 @@ HttpHeaderChannel.prototype.getFirebugNetMonitorListener = function() {
                     try {
                         self.parseReceived(file.responseHeaders, {
                             "FirebugNetMonitorListener": {
-                                "context": context
+                                "context": context,
+                                "file": file
                             }
                         });
                     } catch(e) {
