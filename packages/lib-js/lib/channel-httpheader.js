@@ -4,6 +4,7 @@ function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 
 
 var PROTOCOLS = require("./protocols");
+var CHANNEL = require("./channel");
 
 
 const HEADER_PREFIX = 'x-wf-';
@@ -11,7 +12,96 @@ const HEADER_PREFIX = 'x-wf-';
 
 var HttpHeaderChannel = exports.HttpHeaderChannel = function() {
     this.receivers = [];
+    this.messageIndex = 0;
 }
+HttpHeaderChannel.prototype = Object.create(new CHANNEL.Channel());
+
+
+HttpHeaderChannel.prototype.flush = function() {
+    var messages = this.getOutgoing();
+    if(messages.length==0) {
+        return 0;
+    }
+
+    this.setHeader("x-wf-protocol-1", "http://meta.wildfirehq.org/Protocol/Component/0.1");
+    this.setHeader("x-wf-1-1-sender", "http://pinf.org/cadorn.org/wildfire/packages/lib-js");
+    this.setHeader("x-wf-1-1-1-receiver", "http://pinf.org/cadorn.org/fireconsole");
+    
+    // TODO: try and read the last messageIndex from the outgoing headers
+    
+    for( var i=0 ; i<messages.length ; i++ ) {
+        var headers = this.encode(messages[i]);
+        for( var j=0 ; j<headers.length ; j++ ) {
+            this.setHeader("x-wf-1-index", headers[j][0]);
+            this.setHeader(headers[j][1], headers[j][2]);            
+        }
+    }    
+    
+}
+
+HttpHeaderChannel.prototype.getMessageIndex = function(increment) {
+    increment = increment || 0;
+    this.messageIndex += increment;
+    return this.messageIndex;
+
+}
+
+HttpHeaderChannel.prototype.encode = function(message) {
+    var protocol_index = 1;
+    var sender_index = 1;
+    var receiver_index = 1;
+    
+    var headers = [];
+    
+    var meta = message.getMeta() || "";
+
+    var data = meta.replace(/\|/g, "\\|") + '|' + message.getData().replace(/\|/g, "\\|");
+
+    var parts = chunk_split(data, this.messagePartMaxLength);
+
+    var part,
+        message_index,
+        msg;
+    for( var i=0 ; i<parts.length ; i++) {
+        if (part = parts[i]) {
+
+            message_index = this.getMessageIndex(1);
+
+            if (message_index > 99999) {
+                throw new Error('Maximum number (99,999) of messages reached!');
+            }
+
+            msg = "";
+
+            if (parts.length>2) {
+                msg = ((i==0)?data.length:'') +
+                      '|' + part + '|' +
+                      ((i<parts.length-2)?"\\":"");
+            } else {
+                msg = part.length + '|' + part + '|';
+            }
+
+            headers.push([
+                message_index,
+                'x-wf-' + protocol_index +
+                     '-' + sender_index +
+                     '-' + receiver_index +
+                     '-' + message_index,
+                msg
+            ]);
+        }
+    }
+
+    return headers;
+}
+
+HttpHeaderChannel.prototype.setHeader = function(name, value) {
+
+    print("SET HEADER: "+name +" = "+value);
+}
+
+
+
 
 
 HttpHeaderChannel.prototype.addReceiver = function(receiver) {
@@ -104,4 +194,17 @@ HttpHeaderChannel.prototype.parseReceived = function(rawHeaders, context) {
             }
         }
     }
+}
+
+
+
+
+function chunk_split(value, length) {
+    var parts = [];
+    var part;
+    while( (part = value.substr(0, length)) && part.length > 0 ) {
+        parts.push(part);
+        value = value.substr(length);
+    }
+    return parts;
 }

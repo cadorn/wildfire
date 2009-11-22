@@ -14,11 +14,11 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
         if(!$messages) {
             return 0;
         }
-        $this->setHeader('x-wf-protocol-1: http://meta.wildfirehq.org/Protocol/Component/0.1');
-        $this->setHeader('x-wf-1-1-sender: http://pinf.org/cadorn.org/wildfire/packages/lib-php');
-        $this->setHeader('x-wf-1-1-1-receiver: http://pinf.org/cadorn.org/fireconsole');
+        $this->setHeader('x-wf-protocol-1', 'http://meta.wildfirehq.org/Protocol/Component/0.1');
+        $this->setHeader('x-wf-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-php');
+        $this->setHeader('x-wf-1-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole');
         
-        // try and read the last index from the outgoing headers
+        // try and read the last messageIndex from the outgoing headers
         $headers = headers_list();
         if($headers) {
             foreach( $headers as $header ) {
@@ -32,8 +32,8 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
         foreach( $messages as $message ) {
             $headers = $this->encode($message);
             foreach( $headers as $header ) {
-                $this->setHeader('x-wf-1-index: ' . $header[0]);
-                $this->setHeader($header[1]);
+                $this->setHeader('x-wf-1-index', $header[0]);
+                $this->setHeader($header[1], $header[2]);
             }
         }
         return sizeof($messages);
@@ -83,19 +83,22 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
                     $msg = strlen($part) . '|' . $part . '|';
                 }
 
-                $headers[] = array($message_index, 'x-wf-' . $protocol_index . 
-                             '-' . $sender_index . 
-                             '-' . $receiver_index .
-                             '-' . $message_index .
-                             ': ' . $msg);
+                $headers[] = array(
+                    $message_index,
+                    'x-wf-' . $protocol_index . 
+                        '-' . $sender_index . 
+                        '-' . $receiver_index .
+                        '-' . $message_index,
+                    $msg);
             }
         }
 
         return $headers;
     }
 
-    protected function setHeader($value)
+    protected function setHeader($name, $value)
     {
-        header($value);
+        // replace headers with same name
+        header($name . ': ' . $value, true);
     }
 }
