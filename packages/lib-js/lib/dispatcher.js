@@ -1,15 +1,18 @@
 
+exports.Dispatcher = function() {
+    var Dispatcher = function() {};
 
-var Dispatcher = exports.Dispatcher = function() {
-    this.channel = null;
-}
+    var self = new Dispatcher();
 
+    self.channel = null;
 
-Dispatcher.prototype.setChannel = function(channel) {
-    this.channel = channel;
-}
+    self.setChannel = function(channel) {
+        this.channel = channel;
+    }
+    
+    self.dispatch = function(message) {
+        this.channel.enqueueOutgoing(message);
+    }
 
-
-Dispatcher.prototype.dispatch = function(message) {
-    this.channel.enqueueOutgoing(message);
+    return self;
 }

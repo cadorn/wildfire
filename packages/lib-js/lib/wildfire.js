@@ -1,11 +1,8 @@
 
-
 exports.Receiver = function() {
-    var MODULE = require("./receiver");
-    return new MODULE.Receiver();
+    return require("./receiver").Receiver();
 }
 
 exports.HttpHeaderChannel = function() {
-    var MODULE = require("./channel-httpheader");
-    return new MODULE.HttpHeaderChannel();
+    return require("./channel-httpheader").HttpHeaderChannel();
 }

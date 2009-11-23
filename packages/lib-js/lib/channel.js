@@ -1,19 +1,26 @@
 
-var Channel = exports.Channel = function() {
-    this.messagePartMaxLength = 5000;
-    this.outgoingQueue = [];
-}
 
-Channel.prototype.enqueueOutgoing = function(message) {
-    this.outgoingQueue.push(message);
-    return true;
-}
+exports.Channel = function() {
+    var Channel = function() {};
 
-Channel.prototype.getOutgoing = function() {
-    return this.outgoingQueue;
-}
+    var self = new Channel();
 
+    self.messagePartMaxLength = 5000;
+    self.outgoingQueue = [];
 
-Channel.prototype.setMessagePartMaxLength = function(length) {
-    this.messagePartMaxLength = length;
+    self.enqueueOutgoing = function(message) {
+        this.outgoingQueue.push(message);
+        return true;
+    }
+    
+    self.getOutgoing = function() {
+        return this.outgoingQueue;
+    }
+    
+    
+    self.setMessagePartMaxLength = function(length) {
+        this.messagePartMaxLength = length;
+    }
+    
+    return self;
 }

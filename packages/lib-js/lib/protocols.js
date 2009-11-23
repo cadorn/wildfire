@@ -121,7 +121,7 @@ protocols["http://meta.wildfirehq.org/Protocol/Component/0.1"] = function() {
                 
                 var m = /^(.*?[^\\])?\|(.*)$/.exec(value);
 
-                var message = new MESSAGE.Message();
+                var message = MESSAGE.Message();
                 message.setSender(sender);
                 message.setReceiver(receiver);
                 message.setMeta(m[1] || null);
