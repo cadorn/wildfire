@@ -10,10 +10,10 @@ exports.testSmall = function() {
     
     var channel = HttpHeaderChannel();
     
-    var dispatcher = new DISPATCHER.Dispatcher();
+    var dispatcher = DISPATCHER.Dispatcher();
     dispatcher.setChannel(channel);
     
-    var message = new MESSAGE.Message();
+    var message = MESSAGE.Message();
     message.setData("Hello World");
     message.setMeta('{"line":10}');    
     
@@ -41,10 +41,10 @@ exports.testLarge = function() {
     var channel = HttpHeaderChannel();
     channel.setMessagePartMaxLength(10);
     
-    var dispatcher = new DISPATCHER.Dispatcher();
+    var dispatcher = DISPATCHER.Dispatcher();
     dispatcher.setChannel(channel);
     
-    var message = new MESSAGE.Message();
+    var message = MESSAGE.Message();
     
     var data = [];
     for( var i=0 ; i<3 ; i++ ) {
@@ -80,7 +80,6 @@ var HttpHeaderChannel = function() {
         return this.headers;
     };
     self.setHeader = function(name, value) {
-    
         // replace headers with same name
         for( var i=0 ; i<this.headers.length ; i++ ) {
             if(this.headers[i][0]==name) {

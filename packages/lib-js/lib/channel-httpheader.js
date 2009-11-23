@@ -20,23 +20,25 @@ exports.HttpHeaderChannel = function() {
     self.receivers = [];
     self.messageIndex = 0;
     
-    self.flush = function() {
+    self.flush = function(headerApplicator) {
         var messages = this.getOutgoing();
         if(messages.length==0) {
             return 0;
         }
+        
+        headerApplicator = headerApplicator || this;
     
-        this.setHeader("x-wf-protocol-1", "http://meta.wildfirehq.org/Protocol/Component/0.1");
-        this.setHeader("x-wf-1-1-sender", "http://pinf.org/cadorn.org/wildfire/packages/lib-js");
-        this.setHeader("x-wf-1-1-1-receiver", "http://pinf.org/cadorn.org/fireconsole");
+        headerApplicator.setHeader("x-wf-protocol-1", "http://meta.wildfirehq.org/Protocol/Component/0.1");
+        headerApplicator.setHeader("x-wf-1-1-sender", "http://pinf.org/cadorn.org/wildfire/packages/lib-js");
+        headerApplicator.setHeader("x-wf-1-1-1-receiver", "http://pinf.org/cadorn.org/fireconsole");
         
         // TODO: try and read the last messageIndex from the outgoing headers
-        
+                
         for( var i=0 ; i<messages.length ; i++ ) {
             var headers = this.encode(messages[i]);
             for( var j=0 ; j<headers.length ; j++ ) {
-                this.setHeader("x-wf-1-index", headers[j][0]);
-                this.setHeader(headers[j][1], headers[j][2]);            
+                headerApplicator.setHeader("x-wf-1-index", ""+ headers[j][0]);
+                headerApplicator.setHeader(headers[j][1], headers[j][2]);            
             }
         }    
         

@@ -1,0 +1,19 @@
+#!/usr/bin/env narwhal
+
+var FILE = require("file");
+
+// Put jack on the path
+require.paths.push(FILE.Path(module.path).join("../../../../../using/github.com/cadorn/narwhal/raw/experimental/catalogs/jack/lib"));
+
+var JACKUP = require("jackup", "github.com/cadorn/narwhal/raw/experimental/catalogs/jack");
+
+function jackup(args) {
+    args.shift();
+    args.unshift(FILE.Path(module.path).join("../app.js").valueOf());
+    args.unshift("-r");         // reload application on each request
+    args.unshift("jackup");
+
+    JACKUP.main(args);
+}
+
+jackup(system.args);
