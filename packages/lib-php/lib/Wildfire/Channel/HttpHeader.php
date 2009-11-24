@@ -8,29 +8,40 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
 
     private $messageIndex = 0;
     
+    private $protocols = array();
+    private $senders = array();
+    private $receivers = array();
+    
     public function flush()
     {
         $messages = $this->getOutgoing();
         if(!$messages) {
             return 0;
         }
-        $this->setHeader('x-wf-protocol-1', 'http://meta.wildfirehq.org/Protocol/Component/0.1');
-        $this->setHeader('x-wf-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-php');
-        $this->setHeader('x-wf-1-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole');
         
-        // try and read the last messageIndex from the outgoing headers
+        // TODO: Refactor protocol related code into separate protocol class to allow for other protocols
+        
+        // try and read existing sender, receiver and index headers
         $headers = headers_list();
         if($headers) {
             foreach( $headers as $header ) {
                 if(substr(strtolower($header),0,13)=='x-wf-1-index:') {
                     $this->messageIndex = trim(substr(strtolower($header), 13));
+                } else
+                if(preg_match_all('/^x-wf-1-([^-]*)-sender:.*$/si', $header, $m)) {
+                    // TODO
+                } else
+                if(preg_match_all('/^x-wf-1-([^-]*)-([^-]*)-receiver:.*$/si', $header, $m)) {
+                    // TODO
                 }
             }
         }
         
+        $protocol_id = $this->getProtocolId('http://meta.wildfirehq.org/Protocol/Component/0.1');
+        
         // encode messages and write to headers        
         foreach( $messages as $message ) {
-            $headers = $this->encode($message);
+            $headers = $this->encode($protocol_id, $message);
             foreach( $headers as $header ) {
                 $this->setHeader('x-wf-1-index', $header[0]);
                 $this->setHeader($header[1], $header[2]);
@@ -45,11 +56,52 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
         return $this->messageIndex;
     }
     
-    private function encode(Wildfire_Message $message)
+    private function getProtocolId($uri)
     {
-        $protocol_index = 1;
-        $sender_index = 1;
-        $receiver_index = 1;
+        if(!isset($this->protocols[$uri])) {
+            $this->protocols[$uri] = sizeof($this->protocols)+1;
+            $this->setHeader('x-wf-' . $this->protocols[$uri] . '-protocol', $uri);
+        }
+        return $this->protocols[$uri];
+    }
+    
+    private function getSenderId($protocol_id, $uri)
+    {
+        if(!$uri) {
+            $uri = 'http://pinf.org/cadorn.org/wildfire/packages/lib-php';
+        }
+        if(!isset($this->senders[$protocol_id])) {
+            $this->senders[$protocol_id] = array();
+        }
+        if(!isset($this->senders[$protocol_id][$uri])) {
+            $this->senders[$protocol_id][$uri] = sizeof($this->senders[$protocol_id])+1;
+            $this->setHeader('x-wf-' . $protocol_id . '-' . $this->senders[$protocol_id][$uri] . '-sender', $uri);
+        }
+        return $this->senders[$protocol_id][$uri];
+    }
+    
+    private function getReceiverId($protocol_id, $sender_id, $uri)
+    {
+        if(!$uri) {
+            throw new Exception("No receiver set for message");
+        }
+        if(!isset($this->senders[$protocol_id])) {
+            $this->receivers[$protocol_id] = array();
+        }
+        if(!isset($this->receivers[$protocol_id][$sender_id])) {
+            $this->receivers[$protocol_id][$sender_id] = array();
+        }
+        if(!isset($this->receivers[$protocol_id][$sender_id][$uri])) {
+            $this->receivers[$protocol_id][$sender_id][$uri] = sizeof($this->receivers[$protocol_id][$sender_id])+1;
+            $this->setHeader('x-wf-' . $protocol_id . '-' . $sender_id . '-' . $this->receivers[$protocol_id][$sender_id][$uri] . '-receiver', $uri);
+        }
+        return $this->receivers[$protocol_id][$sender_id][$uri];
+    }
+    
+    private function encode($protocol_id, Wildfire_Message $message)
+    {
+        $sender_id = $this->getSenderId($protocol_id, $message->getSender());
+        $receiver_id = $this->getReceiverId($protocol_id, $sender_id, $message->getReceiver());
         
         $headers = array();
         
@@ -85,9 +137,9 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
 
                 $headers[] = array(
                     $message_index,
-                    'x-wf-' . $protocol_index . 
-                        '-' . $sender_index . 
-                        '-' . $receiver_index .
+                    'x-wf-' . $protocol_id . 
+                        '-' . $sender_id . 
+                        '-' . $receiver_id .
                         '-' . $message_index,
                     $msg);
             }

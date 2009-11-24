@@ -185,9 +185,8 @@ exports.HttpHeaderChannel = function() {
         function parseHeader(name, value)
         {
             if (name.substr(0, HEADER_PREFIX.length) == HEADER_PREFIX) {
-                
-                if (name.substr(HEADER_PREFIX.length, 9) == 'protocol-') {
-                    var id = parseInt(name.substr(HEADER_PREFIX.length + 9));
+                if (name.substr(name.length-9) == '-protocol') {
+                    var id = parseInt(name.substr(HEADER_PREFIX.length, name.length-HEADER_PREFIX.length-1));
                     protocols[id] = PROTOCOLS.factory(value);
                 } else {
                     var index = name.indexOf('-',HEADER_PREFIX.length);

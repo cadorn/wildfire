@@ -39,4 +39,3 @@ Example
 Browse to: http://127.0.0.1:8080/
 
 Open firebug and check the *response headers* in the *Net* panel.
-q

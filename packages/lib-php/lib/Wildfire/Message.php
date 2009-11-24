@@ -2,9 +2,10 @@
 
 class Wildfire_Message
 {
+    private $sender = null;
+    private $receiver = null;
     private $data = null;
     private $meta = null;
-    
     
     public function setData($data)
     {
@@ -34,6 +35,26 @@ class Wildfire_Message
     public function getMeta()
     {
         return $this->meta;
+    }
+    
+    public function setSender($sender)
+    {
+        $this->sender = $sender;
+    }
+    
+    public function getSender()
+    {
+        return $this->sender;
+    }
+    
+    public function setReceiver($receiver)
+    {
+        $this->receiver = $receiver;
+    }
+    
+    public function getReceiver()
+    {
+        return $this->receiver;
     }
     
 }

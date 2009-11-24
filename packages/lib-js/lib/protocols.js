@@ -25,7 +25,7 @@ protocols["http://meta.wildfirehq.org/Protocol/Component/0.1"] = function() {
 
     return {
         parseHeader: function(senders, receivers, messages, name, value) {
-            
+
             var parts = name.split('-');
             // parts[0] - sender
             // parts[1] - receiver
