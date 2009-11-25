@@ -37,7 +37,7 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
             }
         }
         
-        $protocol_id = $this->getProtocolId('http://meta.wildfirehq.org/Protocol/Component/0.1');
+        $protocol_id = $this->getProtocolId('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
         
         // encode messages and write to headers        
         foreach( $messages as $message ) {

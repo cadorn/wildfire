@@ -28,7 +28,7 @@ exports.HttpHeaderChannel = function() {
         
         headerApplicator = headerApplicator || this;
     
-        headerApplicator.setHeader("x-wf-protocol-1", "http://meta.wildfirehq.org/Protocol/Component/0.1");
+        headerApplicator.setHeader("x-wf-protocol-1", "http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1");
         headerApplicator.setHeader("x-wf-1-1-sender", "http://pinf.org/cadorn.org/wildfire/packages/lib-js");
         headerApplicator.setHeader("x-wf-1-1-1-receiver", "http://pinf.org/cadorn.org/fireconsole");
         

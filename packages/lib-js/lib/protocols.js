@@ -19,7 +19,7 @@ exports.factory = function(uri) {
 
 
     
-protocols["http://meta.wildfirehq.org/Protocol/Component/0.1"] = function() {
+protocols["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = function() {
 
     var buffers = {};
 
