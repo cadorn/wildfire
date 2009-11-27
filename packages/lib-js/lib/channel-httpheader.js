@@ -160,6 +160,9 @@ exports.HttpHeaderChannel = function() {
             var targetReceivers = [];
             for( var i=0 ; i<this.receivers.length ; i++ ) {
                 if(this.receivers[i].getId()==receiverId) {
+                    if(this.receivers[i]["onMessageGroupStart"]) {
+                        this.receivers[i].onMessageGroupStart(context);
+                    }
                     targetReceivers.push(this.receivers[i]);
                 }
             }
@@ -169,7 +172,12 @@ exports.HttpHeaderChannel = function() {
                     messages[receiverKey][j][1].setSender(senders[messages[receiverKey][j][1].getSender()]);
                     messages[receiverKey][j][1].setReceiver(receiverId);
                     for( var k=0 ; k<targetReceivers.length ; k++ ) {
-                        targetReceivers[k].receive(messages[receiverKey][j][1], context);
+                        targetReceivers[k].onMessageReceived(context, messages[receiverKey][j][1]);
+                    }
+                }
+                for( var k=0 ; k<targetReceivers.length ; k++ ) {
+                    if(targetReceivers[k]["onMessageGroupEnd"]) {
+                        targetReceivers[k].onMessageGroupEnd(context);
                     }
                 }
             }
