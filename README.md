@@ -6,6 +6,13 @@ Component to component communication used in [FireConsole](http://www.fireconsol
 Also see: [http://www.wildfirehq.org/](http://www.wildfirehq.org/)
 
 
+Links
+=====
+
+ * [BERT and BERT-RPC](http://bert-rpc.org/)
+
+
+
 License
 =======
 

@@ -24,7 +24,7 @@ exports.testSmall = function() {
 
     ASSERT.deepEqual(
         [
-            ['x-wf-protocol-1', 'http://meta.wildfirehq.org/Protocol/Component/0.1'],
+            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
             ['x-wf-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
             ['x-wf-1-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
             ['x-wf-1-index', '2'],
@@ -58,7 +58,7 @@ exports.testLarge = function() {
 
     ASSERT.deepEqual(
         [
-            ['x-wf-protocol-1', 'http://meta.wildfirehq.org/Protocol/Component/0.1'],
+            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
             ['x-wf-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
             ['x-wf-1-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
             ["x-wf-1-index", "3"],

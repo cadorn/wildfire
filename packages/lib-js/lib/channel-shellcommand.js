@@ -7,38 +7,38 @@ var PROTOCOLS = require("./protocols");
 var CHANNEL = require("./channel");
 
 
-const HEADER_PREFIX = 'x-wf-';
+const HEADER_PREFIX = '#x-wf-';
 
 
 
-exports.HttpHeaderChannel = function() {
-    var HttpHeaderChannel = function() {};
-    HttpHeaderChannel.prototype = CHANNEL.Channel();
+exports.ShellCommandChannel = function() {
+    var ShellCommandChannel = function() {};
+    ShellCommandChannel.prototype = CHANNEL.Channel();
 
-    var self = new HttpHeaderChannel();
+    var self = new ShellCommandChannel();
 
     self.receivers = [];
     self.messageIndex = 0;
     
-    self.flush = function(headerApplicator) {
+    self.flush = function(applicator) {
         var messages = this.getOutgoing();
         if(messages.length==0) {
             return 0;
         }
         
-        headerApplicator = headerApplicator || this;
+        applicator = applicator || this;
     
-        headerApplicator.setHeader(HEADER_PREFIX + "protocol-1", "http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1");
-        headerApplicator.setHeader(HEADER_PREFIX + "1-1-sender", "http://pinf.org/cadorn.org/wildfire/packages/lib-js");
-        headerApplicator.setHeader(HEADER_PREFIX + "1-1-1-receiver", "http://pinf.org/cadorn.org/fireconsole");
+        applicator.setHeader(HEADER_PREFIX + "protocol-1", "http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1");
+        applicator.setHeader(HEADER_PREFIX + "1-1-sender", "http://pinf.org/cadorn.org/wildfire/packages/lib-js");
+        applicator.setHeader(HEADER_PREFIX + "1-1-1-receiver", "http://pinf.org/cadorn.org/fireconsole");
         
         // TODO: try and read the last messageIndex from the outgoing headers
                 
         for( var i=0 ; i<messages.length ; i++ ) {
             var headers = this.encode(messages[i]);
             for( var j=0 ; j<headers.length ; j++ ) {
-                headerApplicator.setHeader(HEADER_PREFIX + "1-index", ""+ headers[j][0]);
-                headerApplicator.setHeader(headers[j][1], headers[j][2]);            
+                applicator.setHeader(HEADER_PREFIX + "1-index", ""+ headers[j][0]);
+                applicator.setHeader(headers[j][1], headers[j][2]);            
             }
         }    
         
@@ -104,34 +104,13 @@ exports.HttpHeaderChannel = function() {
     self.addReceiver = function(receiver) {
         this.receivers.push(receiver);
     }    
-    
-    
-    self.getFirebugNetMonitorListener = function() {
-        if(!this.firebugNetMonitorListener) {
-            var self = this;
-            this.firebugNetMonitorListener = {
-                onResponseBody: function(context, file)
-                {
-                    if(file) {
-                        try {
-                            self.parseReceived(file.responseHeaders, {
-                                "FirebugNetMonitorListener": {
-                                    "context": context,
-                                    "file": file
-                                }
-                            });
-                        } catch(e) {
-                            system.log.error(e);
-                        }
-                    }
-                }
-            }
-        }
-        return this.firebugNetMonitorListener;
-    }
-    
+
     
     self.parseReceived = function(rawHeaders, context) {
+        
+        if(typeof rawHeaders != "object") {
+            rawHeaders = text_header_to_object(rawHeaders);
+        }
         
         var protocols = {};
     
@@ -185,8 +164,8 @@ exports.HttpHeaderChannel = function() {
         function parseHeader(name, value)
         {
             if (name.substr(0, HEADER_PREFIX.length) == HEADER_PREFIX) {
-                if (name.substr(name.length-9) == '-protocol') {
-                    var id = parseInt(name.substr(HEADER_PREFIX.length, name.length-HEADER_PREFIX.length-1));
+                if (name.substring(0,HEADER_PREFIX.length + 9) == HEADER_PREFIX + 'protocol-') {
+                    var id = parseInt(name.substr(HEADER_PREFIX.length + 9));
                     protocols[id] = PROTOCOLS.factory(value);
                 } else {
                     var index = name.indexOf('-',HEADER_PREFIX.length);
@@ -211,5 +190,25 @@ exports.HttpHeaderChannel = function() {
             value = value.substr(length);
         }
         return parts;
+    }
+    
+    function text_header_to_object(text) {
+        // trim escape sequence \[0m from beginning if applicable
+        if(text.charCodeAt(0)==27 && text.charCodeAt(3)==109) {
+            text = text.substring(4);
+        }
+        var headers = [];
+        var lines = text.split("\n");
+        var expression = new RegExp("^("+HEADER_PREFIX+"[^:]*): (.*)$", "i");
+        var m;
+        for( var i=0 ; i<lines.length ; i++ ) {
+            if(lines[i] && (m = expression.exec(lines[i]))) {
+                headers.push({
+                    "name": m[1],
+                    "value": m[2]
+                });
+            }            
+        }
+        return headers;
     }
 }
