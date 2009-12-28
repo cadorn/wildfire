@@ -77,7 +77,7 @@ exports.testLarge = function() {
         flusher.getHeaders()
     );
 }
-
+/*
 exports.testMultipleProtocols = function() {
     
     var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
@@ -117,7 +117,7 @@ exports.testMultipleProtocols = function() {
         flusher.getHeaders()
     );
 }
-
+*/
 var Flusher = function() {
     this.headers = [];
 };

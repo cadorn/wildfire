@@ -8,23 +8,31 @@ function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 var MESSAGE = require("./message");
 
 
-var protocols = {};
+var parsers = {};
+var encoders = {};
 
-exports.factory = function(uri) {
-    if(protocols[uri]) {
-        return protocols[uri]();
+exports.getParser = function(uri) {
+    if(parsers[uri]) {
+        return parsers[uri]();
+    }
+    return null;
+}
+
+exports.getEncoder = function(uri) {
+    if(encoders[uri]) {
+        return encoders[uri]();
     }
     return null;
 }
 
 
     
-protocols["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = function() {
+parsers["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = function() {
 
     var buffers = {};
 
     return {
-        parseHeader: function(senders, receivers, messages, name, value) {
+        parse: function(senders, receivers, messages, name, value) {
 
             var parts = name.split('-');
             // parts[0] - sender
@@ -128,6 +136,146 @@ protocols["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = f
                 message.setData(m[2]);
                 
                 messages[sender + ':' + receiver].push([index, message]);
+            }
+        }
+    };
+};
+
+
+encoders["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = function() {
+
+    function chunk_split(value, length) {
+        var parts = [];
+        var part;
+        while( (part = value.substr(0, length)) && part.length > 0 ) {
+            parts.push(part);
+            value = value.substr(length);
+        }
+        return parts;
+    }
+
+    return {
+        
+        encodeMessage: function(options, message) {
+                  
+            var protocol_id = message.getProtocol();
+            if(!protocol_id) {
+                throw new Error("Protocol not set for message");
+            }
+            var sender_id = message.getSender();
+            if(!sender_id) {
+                throw new Error("Sender not set for message");
+            }
+            var receiver_id = message.getReceiver();
+            if(!receiver_id) {
+                throw new Error("Receiver not set for message");
+            }
+            
+            var headers = [];
+            
+            var meta = message.getMeta() || "";
+        
+            var data = meta.replace(/\|/g, "\\|") + '|' + message.getData().replace(/\|/g, "\\|");
+        
+            var parts = chunk_split(data, options.messagePartMaxLength);
+        
+            var part,
+                msg;
+            for( var i=0 ; i<parts.length ; i++) {
+                if (part = parts[i]) {
+        
+                    msg = "";
+        
+                    if (parts.length>2) {
+                        msg = ((i==0)?data.length:'') +
+                              '|' + part + '|' +
+                              ((i<parts.length-2)?"\\":"");
+                    } else {
+                        msg = part.length + '|' + part + '|';
+                    }
+        
+                    headers.push([
+                        protocol_id,
+                        sender_id,
+                        receiver_id,
+                        msg
+                    ]);
+                }
+            }
+            return headers;
+        },
+        
+        encodeKey: function(util, sender, receiver) {
+            
+            if(!util["protocols"]) util["protocols"] = {};
+            if(!util["messageIndexes"]) util["messageIndexes"] = {};
+            if(!util["senders"]) util["senders"] = {};
+            if(!util["receivers"]) util["receivers"] = {};
+
+            var protocol = getProtocolIndex("http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1");
+            var messageIndex = getMessageIndex(protocol);
+            var sender = getSenderIndex(protocol, sender);
+            var receiver = getReceiverIndex(protocol, sender, receiver);
+            
+            return util.HEADER_PREFIX + protocol + "-" + sender + "-" + receiver + "-" + messageIndex;
+        
+            function getProtocolIndex(protocolId) {
+                if(util["protocols"][protocolId]) return util["protocols"][protocolId];
+                for( var i=1 ; ; i++ ) {
+                    var value = util.applicator.getMessagePart(util.HEADER_PREFIX + "protocol-" + i);
+                    if(!value) {
+                        util["protocols"][protocolId] = i;
+                        util.applicator.setMessagePart(util.HEADER_PREFIX + "protocol-" + i, protocolId);
+                        return i;
+                    } else
+                    if(value==protocolId) {
+                        util["protocols"][protocolId] = i;
+                        return i;
+                    }
+                }
+            }
+        
+            function getMessageIndex(protocolIndex) {
+                var value = util["messageIndexes"][protocolIndex] || util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-index");
+                if(!value) {
+                    value = 0;
+                }
+                value++;
+                util["messageIndexes"][protocolIndex] = value;
+                util.applicator.setMessagePart(util.HEADER_PREFIX + protocolIndex + "-index", value);
+                return value;
+            }
+            
+            function getSenderIndex(protocolIndex, senderId) {
+                if(util["senders"][protocolIndex + ":" + senderId]) return util["senders"][protocolIndex + ":" + senderId];
+                for( var i=1 ; ; i++ ) {
+                    var value = util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + i + "-sender");
+                    if(!value) {
+                        util["senders"][protocolIndex + ":" + senderId] = i;
+                        util.applicator.setMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + i + "-sender", senderId);
+                        return i;
+                    } else
+                    if(value==senderId) {
+                        util["senders"][protocolIndex + ":" + senderId] = i;
+                        return i;
+                    }
+                }
+            }
+            
+            function getReceiverIndex(protocolIndex, senderIndex, receiverId) {
+                if(util["receivers"][protocolIndex + ":" + senderIndex + ":" + receiverId]) return util["receivers"][protocolIndex + ":" + senderIndex + ":" + receiverId];
+                for( var i=1 ; ; i++ ) {
+                    var value = util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + senderIndex + "-" + i + "-receiver");
+                    if(!value) {
+                        util["receivers"][protocolIndex + ":" + senderIndex + ":" + receiverId] = i;
+                        util.applicator.setMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + senderIndex + "-" + i + "-receiver", receiverId);
+                        return i;
+                    } else
+                    if(value==receiverId) {
+                        util["receivers"][protocolIndex + ":" + senderIndex + ":" + receiverId] = i;
+                        return i;
+                    }
+                }
             }
         }
     };

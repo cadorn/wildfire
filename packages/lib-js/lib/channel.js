@@ -12,7 +12,9 @@ var Channel = exports.Channel = function () {
 
 Channel.prototype.__construct = function(message) {
     this.receivers = [];
-    this.messagePartMaxLength = 5000;
+    this.options = {
+        "messagePartMaxLength": 5000
+    }
     this.outgoingQueue = [];
 }
 
@@ -35,7 +37,7 @@ Channel.prototype.getOutgoing = function() {
 }
 
 Channel.prototype.setMessagePartMaxLength = function(length) {
-    this.messagePartMaxLength = length;
+    this.options.messagePartMaxLength = length;
 }
 
 Channel.prototype.flush = function(applicator) {
@@ -45,86 +47,20 @@ Channel.prototype.flush = function(applicator) {
     }
     
     var self = this;
-    var protocols = {};
-    var messageIndexes = {};
-    var senders = {};
-    var receivers = {};
+    var util = {
+        "applicator": applicator,
+        "HEADER_PREFIX": self.HEADER_PREFIX
+    };
             
     for( var i=0 ; i<messages.length ; i++ ) {
-        var headers = messages[i];//this.encode(messages[i]);
-        for( var j=0 ; j<headers.length ; j++ ) {
-            
-            var protocol = getProtocolIndex(headers[j][0]);
-            var messageIndex = getMessageIndex(protocol);
-            var sender = getSenderIndex(protocol, headers[j][1]);
-            var receiver = getReceiverIndex(protocol, sender, headers[j][2]);
-            
+        var headers = messages[i];
+        for( var j=0 ; j<headers.length ; j++ ) {            
             applicator.setMessagePart(
-                self.HEADER_PREFIX + protocol + "-" + sender + "-" + receiver + "-" + messageIndex,
+                PROTOCOLS.getEncoder(headers[j][0]).encodeKey(util, headers[j][1], headers[j][2]),
                 headers[j][3]
             );
         }
-    }    
-                
-    function getProtocolIndex(protocolId) {
-        if(protocols[protocolId]) return protocols[protocolId];
-        for( var i=1 ; ; i++ ) {
-            var value = applicator.getMessagePart(self.HEADER_PREFIX + "protocol-" + i);
-            if(!value) {
-                protocols[protocolId] = i;
-                applicator.setMessagePart(self.HEADER_PREFIX + "protocol-" + i, protocolId);
-                return i;
-            } else
-            if(value==protocolId) {
-                protocols[protocolId] = i;
-                return i;
-            }
-        }
     }
-
-    function getMessageIndex(protocolIndex) {
-        var value = messageIndexes[protocolIndex] || applicator.getMessagePart(self.HEADER_PREFIX + protocolIndex + "-index");
-        if(!value) {
-            value = 0;
-        }
-        value++;
-        messageIndexes[protocolIndex] = value;
-        applicator.setMessagePart(self.HEADER_PREFIX + protocolIndex + "-index", value);
-        return value;
-    }
-    
-    function getSenderIndex(protocolIndex, senderId) {
-        if(senders[protocolIndex + ":" + senderId]) return senders[protocolIndex + ":" + senderId];
-        for( var i=1 ; ; i++ ) {
-            var value = applicator.getMessagePart(self.HEADER_PREFIX + protocolIndex + "-" + i + "-sender");
-            if(!value) {
-                senders[protocolIndex + ":" + senderId] = i;
-                applicator.setMessagePart(self.HEADER_PREFIX + protocolIndex + "-" + i + "-sender", senderId);
-                return i;
-            } else
-            if(value==senderId) {
-                senders[protocolIndex + ":" + senderId] = i;
-                return i;
-            }
-        }
-    }
-    
-    function getReceiverIndex(protocolIndex, senderIndex, receiverId) {
-        if(senders[protocolIndex + ":" + senderIndex + ":" + receiverId]) return senders[protocolIndex + ":" + senderIndex + ":" + receiverId];
-        for( var i=1 ; ; i++ ) {
-            var value = applicator.getMessagePart(self.HEADER_PREFIX + protocolIndex + "-" + senderIndex + "-" + i + "-receiver");
-            if(!value) {
-                senders[protocolIndex + ":" + senderIndex + ":" + receiverId] = i;
-                applicator.setMessagePart(self.HEADER_PREFIX + protocolIndex + "-" + senderIndex + "-" + i + "-receiver", receiverId);
-                return i;
-            } else
-            if(value==receiverId) {
-                senders[protocolIndex + ":" + senderIndex + ":" + receiverId] = i;
-                return i;
-            }
-        }
-    }
-
 }
 
 Channel.prototype.setMessagePart = function(name, value) {
@@ -139,48 +75,7 @@ Channel.prototype.encode = function(message) {
     if(!protocol_id) {
         throw new Error("Protocol not set for message");
     }
-    var sender_id = message.getSender();
-    if(!sender_id) {
-        throw new Error("Sender not set for message");
-    }
-    var receiver_id = message.getReceiver();
-    if(!receiver_id) {
-        throw new Error("Receiver not set for message");
-    }
-    
-    var headers = [];
-    
-    var meta = message.getMeta() || "";
-
-    var data = meta.replace(/\|/g, "\\|") + '|' + message.getData().replace(/\|/g, "\\|");
-
-    var parts = chunk_split(data, this.messagePartMaxLength);
-
-    var part,
-        msg;
-    for( var i=0 ; i<parts.length ; i++) {
-        if (part = parts[i]) {
-
-            msg = "";
-
-            if (parts.length>2) {
-                msg = ((i==0)?data.length:'') +
-                      '|' + part + '|' +
-                      ((i<parts.length-2)?"\\":"");
-            } else {
-                msg = part.length + '|' + part + '|';
-            }
-
-            headers.push([
-                protocol_id,
-                sender_id,
-                receiver_id,
-                msg
-            ]);
-        }
-    }
-
-    return headers;
+    return PROTOCOLS.getEncoder(protocol_id).encodeMessage(this.options, message);
 }
 
 Channel.prototype.addReceiver = function(receiver) {
@@ -249,13 +144,13 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         if (name.substr(0, self.HEADER_PREFIX.length) == self.HEADER_PREFIX) {
             if (name.substring(0,self.HEADER_PREFIX.length + 9) == self.HEADER_PREFIX + 'protocol-') {
                 var id = parseInt(name.substr(self.HEADER_PREFIX.length + 9));
-                protocols[id] = PROTOCOLS.factory(value);
+                protocols[id] = PROTOCOLS.getParser(value);
             } else {
                 var index = name.indexOf('-',self.HEADER_PREFIX.length);
                 var id = parseInt(name.substr(self.HEADER_PREFIX.length,index-self.HEADER_PREFIX.length));
                 
                 if(protocols[id]) {
-                    protocols[id].parseHeader(senders, receivers, messages, name.substr(index+1), value);
+                    protocols[id].parse(senders, receivers, messages, name.substr(index+1), value);
                 }
             }
         }
@@ -282,14 +177,3 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
     }
 }
 
-
-
-function chunk_split(value, length) {
-    var parts = [];
-    var part;
-    while( (part = value.substr(0, length)) && part.length > 0 ) {
-        parts.push(part);
-        value = value.substr(length);
-    }
-    return parts;
-}
