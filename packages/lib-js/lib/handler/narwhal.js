@@ -6,12 +6,22 @@ var MESSAGE = require("../message");
 
 var channel = CHANNEL.ShellCommandChannel();
 var dispatcher = DISPATCHER.Dispatcher();
-dispatcher.setChannel(channel);
+dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/handler/narwhal.js');
+
+function init() {
+    dispatcher.setChannel(channel);
+}
+
+exports.setChannel = function(obj) {
+    channel = obj;
+    init();
+}
 
 exports.flush = function() {
     var buffer = {};
     channel.flush({
-        setHeader: function(name, value) {
+        setMessagePart: function(name, value) {
             buffer[name] = value;
         }
     });
@@ -21,15 +31,19 @@ exports.flush = function() {
     SYSTEM.stderr.flush();
 }
 
-var api = {
-    send: function(data, meta) {
-        var message = new MESSAGE.Message();
-        message.setData(meta || "");
-        message.setMeta(data);    
-        dispatcher.dispatch(message);
-    }
-}
+var API = function() {};
+API.prototype.send = function(data, meta) {
+    var message = new MESSAGE.Message();
+    message.setData(meta || "");
+    message.setMeta(data);    
+    message.setReceiver(this.receiver);
+    dispatcher.dispatch(message);
+};
 
-exports.getAPI = function() {
+exports.target = function(receiver) {
+    var api = new API();
+    api.receiver = receiver; 
     return api;
 }
+
+init();

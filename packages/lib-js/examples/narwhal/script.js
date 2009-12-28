@@ -1,6 +1,6 @@
 var WILDFIRE = require("handler/narwhal", "github.com/cadorn/wildfire/raw/master/lib-js");
 
-WILDFIRE.getAPI().send(
+WILDFIRE.target("http://pinf.org/cadorn.org/fireconsole").send(
     "Meta Data",
     "Message Data"
 );

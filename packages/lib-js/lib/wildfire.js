@@ -14,3 +14,7 @@ exports.Message = function() {
 exports.HttpHeaderChannel = function() {
     return require("./channel-httpheader").HttpHeaderChannel();
 }
+
+exports.ShellCommandChannel = function() {
+    return require("./channel-shellcommand").ShellCommandChannel();
+}

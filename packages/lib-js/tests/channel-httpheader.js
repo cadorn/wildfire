@@ -8,19 +8,23 @@ var MESSAGE = require("message");
 
 exports.testSmall = function() {
     
-    var channel = HttpHeaderChannel();
+    var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
     
     var dispatcher = DISPATCHER.Dispatcher();
     dispatcher.setChannel(channel);
     
     var message = MESSAGE.Message();
     message.setData("Hello World");
-    message.setMeta('{"line":10}');    
+    message.setMeta('{"line":10}');
+    message.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    message.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
+    message.setReceiver('http://pinf.org/cadorn.org/fireconsole');
     
     dispatcher.dispatch(message);
     dispatcher.dispatch(message);
 
-    channel.flush();
+    var flusher = new Flusher();
+    channel.flush(flusher);
 
     ASSERT.deepEqual(
         [
@@ -31,18 +35,23 @@ exports.testSmall = function() {
             ['x-wf-1-1-1-1', '23|{"line":10}|Hello World|'],
             ['x-wf-1-1-1-2', '23|{"line":10}|Hello World|']
         ],
-        channel.getHeaders()
+        flusher.getHeaders()
     );
 }
 
 
 exports.testLarge = function() {
     
-    var channel = HttpHeaderChannel();
+    var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
+
+print(channel.getOutgoing());
     channel.setMessagePartMaxLength(10);
     
     var dispatcher = DISPATCHER.Dispatcher();
     dispatcher.setChannel(channel);
+    dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
+    dispatcher.setReceiver('http://pinf.org/cadorn.org/fireconsole');
     
     var message = MESSAGE.Message();
     
@@ -54,7 +63,8 @@ exports.testLarge = function() {
     
     dispatcher.dispatch(message);
 
-    channel.flush();
+    var flusher = new Flusher();
+    channel.flush(flusher);
 
     ASSERT.deepEqual(
         [
@@ -66,35 +76,29 @@ exports.testLarge = function() {
             ["x-wf-1-1-1-2", "|ine 1; lin|"],
             ["x-wf-1-1-1-3", "|e 2|"],
         ],
-        channel.getHeaders()
+        flusher.getHeaders()
     );
 }
 
-
-var HttpHeaderChannel = function() {
-    var HttpHeaderChannel = function() {};
-    HttpHeaderChannel.prototype = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
-    var self = new HttpHeaderChannel();
-    self.headers = [];
-    self.getHeaders = function() {
-        return this.headers;
-    };
-    self.setHeader = function(name, value) {
-        // replace headers with same name
-        for( var i=0 ; i<this.headers.length ; i++ ) {
-            if(this.headers[i][0]==name) {
-                this.headers[i][1] = '' + value;
-                break;
-            }
-        }
-        // add header if not already found
-        if(i==0 || (i==this.headers.length && this.headers[i-1][0]!=name)) {
-            this.headers.push([name, value]);
-        }
-    };
-    return self;
+var Flusher = function() {
+    this.headers = [];
+};
+Flusher.prototype.getHeaders = function() {
+    return this.headers;
 }
-
+Flusher.prototype.setMessagePart = function(name, value) {
+    // replace headers with same name
+    for( var i=0 ; i<this.headers.length ; i++ ) {
+        if(this.headers[i][0]==name) {
+            this.headers[i][1] = '' + value;
+            break;
+        }
+    }
+    // add header if not already found
+    if(i==0 || (i==this.headers.length && this.headers[i-1][0]!=name)) {
+        this.headers.push([name, value]);
+    }
+}
 
 if (require.main == module.id)
     require("os").exit(require("test").run(exports));

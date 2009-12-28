@@ -7,6 +7,14 @@ exports.Message = function() {
     self.meta = null;
     self.data = null;
     
+    self.setProtocol = function(protocol) {
+        this.protocol = protocol;
+    }
+    
+    self.getProtocol = function() {
+        return this.protocol;
+    }
+    
     self.setSender = function(sender) {
         this.sender = sender;
     }

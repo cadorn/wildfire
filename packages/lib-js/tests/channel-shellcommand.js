@@ -41,7 +41,7 @@ exports.testScript = function() {
     var stdout = UTIL.trim(result.stdout.read());
     var stderr = UTIL.trim(result.stderr.read());
     
-    // process result
+    // process/test result
     
     ASSERT.equal("Hello World", stdout);
 
@@ -57,6 +57,48 @@ exports.testScript = function() {
                 {
                     "command": command
                 }
+            ]
+        ],
+        received);
+}
+
+exports.testInline = function() {
+    
+    // setup receiver and channel
+    var received = [];
+    
+    var receiver = RECEIVER.Receiver();
+    receiver.setId("http://pinf.org/cadorn.org/fireconsole");
+    receiver.addListener({
+        onMessageReceived: function(context, message) {
+            received.push([message.getMeta(), message.getData()]);
+            return false;
+        }
+    });
+
+    var channel = CHANNEL.ShellCommandChannel();
+    channel.addReceiver(receiver);
+    
+    // run inline
+
+    // --- in the parent context
+    var WILDFIRE = require("handler/narwhal", "github.com/cadorn/wildfire/raw/master/lib-js");
+    
+    WILDFIRE.setChannel(channel);
+    
+    // --- in the client context
+    WILDFIRE.target("http://pinf.org/cadorn.org/fireconsole").send(
+        "Meta Data",
+        "Message Data"
+    );
+    WILDFIRE.flush();
+
+    // test result
+    ASSERT.deepEqual(
+        [
+            [
+                "Meta Data",
+                "Message Data"
             ]
         ],
         received);

@@ -4,7 +4,7 @@ var WILDFIRE = require("handler/jack", "github.com/cadorn/wildfire/raw/master/li
 
 var App = function(env) {
 
-    WILDFIRE.getAPI().send(
+    WILDFIRE.target("http://pinf.org/cadorn.org/fireconsole").send(
         "Message Data",
         "Meta Data"
     );
