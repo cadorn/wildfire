@@ -6,6 +6,39 @@ var DISPATCHER = require("dispatcher");
 var MESSAGE = require("message");
 
 
+
+exports.testDispatcher = function() {
+    
+    var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
+    
+    var dispatcher = DISPATCHER.Dispatcher();
+    dispatcher.setChannel(channel);
+    dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
+    dispatcher.setReceiver('http://pinf.org/cadorn.org/fireconsole');
+    
+    var message = MESSAGE.Message();
+    message.setData("Hello World");
+    message.setMeta('{"line":10}');
+    
+    dispatcher.dispatch(message);
+
+    var flusher = new Flusher();
+    channel.flush(flusher);
+
+    ASSERT.deepEqual(
+        flusher.getHeaders(),
+        [
+            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ['x-wf-1-index', '1'],
+            ['x-wf-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
+            ['x-wf-1-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
+            ['x-wf-1-1-1-1', '23|{"line":10}|Hello World|']
+        ]
+    );
+}
+
+
 exports.testSmall = function() {
     
     var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();

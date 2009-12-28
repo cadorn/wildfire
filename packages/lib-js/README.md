@@ -37,6 +37,9 @@ Sending HTTP header messages:
     
     var dispatcher = WILDFIRE.Dispatcher();
     dispatcher.setChannel(channel);
+    dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
+    dispatcher.setReceiver('http://pinf.org/cadorn.org/fireconsole');
     
     var message = WILDFIRE.Message();
     message.setData("Hello World");
@@ -46,12 +49,13 @@ Sending HTTP header messages:
 
     // Flush headers via:
     channel.flush({
-        setHeader: function(name, value) {
+        setMessagePart: function(name, value) {
             // set (always overwrite) headers on response object
+        },
+        getMessagePart: function(name) {
+            // return header set at name on response object
         }
     });
-
-
 
 
 
