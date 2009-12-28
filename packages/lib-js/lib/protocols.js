@@ -13,42 +13,41 @@ var encoders = {};
 
 exports.getParser = function(uri) {
     if(parsers[uri]) {
-        return parsers[uri]();
+        return parsers[uri](uri);
     }
     return null;
 }
 
 exports.getEncoder = function(uri) {
     if(encoders[uri]) {
-        return encoders[uri]();
+        return encoders[uri](uri);
     }
     return null;
 }
-
-
-    
-parsers["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = function() {
+   
+parsers["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = 
+parsers["__TEST__"] = function(uri) {
 
     var buffers = {};
 
     return {
-        parse: function(senders, receivers, messages, name, value) {
+        parse: function(receivers, senders, messages, name, value) {
 
             var parts = name.split('-');
-            // parts[0] - sender
-            // parts[1] - receiver
+            // parts[0] - receiver
+            // parts[1] - sender
             // parts[2] - message id/index
             
             if(parts[0]=='index') {
                 // ignore the index header
                 return;
             } else
-            if(parts[1]=='sender') {
-                senders[parts[0]] = value;
+            if(parts[1]=='receiver') {
+                receivers[parts[0]] = value;
                 return;
             } else
-            if(parts[2]=='receiver') {
-                receivers[parts[0] + ':' + parts[1]] = value;
+            if(parts[2]=='sender') {
+                senders[parts[0] + ':' + parts[1]] = value;
                 return;
             }
             
@@ -71,8 +70,8 @@ parsers["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = fun
             }
             
             // this supports message parts arriving in any order as fast as possible
-            function enqueueBuffer(index, sender, receiver, value, position, length) {
-                var key = sender + ':' + receiver;
+            function enqueueBuffer(index, receiver, sender, value, position, length) {
+                var key = receiver;
                 if(!buffers[key]) {
                     buffers[key] = {"firsts": 0, "lasts": 0, "messages": []};
                 }
@@ -105,7 +104,7 @@ parsers["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = fun
                                 // we have a complete message
                                 if(buffer.length==buffers[key].messages[startIndex][3]) {
                                     // message is complete
-                                    enqueueMessage(buffers[key].messages[startIndex][0], sender, receiver, buffer);
+                                    enqueueMessage(buffers[key].messages[startIndex][0], receiver, sender, buffer);
                                     buffers[key].messages.splice(startIndex, i-startIndex);
                                     buffers[key].firsts -= 1;
                                     buffers[key].lasts -= 1;
@@ -121,28 +120,29 @@ parsers["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = fun
                 }
             }
             
-            function enqueueMessage(index, sender, receiver, value) {
+            function enqueueMessage(index, receiver, sender, value) {
                 
-                if(!messages[sender + ':' + receiver]) {
-                    messages[sender + ':' + receiver] = [];
+                if(!messages[receiver]) {
+                    messages[receiver] = [];
                 }
                 
                 var m = /^(.*?[^\\])?\|(.*)$/.exec(value);
 
                 var message = MESSAGE.Message();
-                message.setSender(sender);
                 message.setReceiver(receiver);
+                message.setSender(sender);
                 message.setMeta(m[1] || null);
                 message.setData(m[2]);
                 
-                messages[sender + ':' + receiver].push([index, message]);
+                messages[receiver].push([index, message]);
             }
         }
     };
 };
 
 
-encoders["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = function() {
+encoders["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = 
+encoders["__TEST__"] = function(uri) {
 
     function chunk_split(value, length) {
         var parts = [];
@@ -162,13 +162,13 @@ encoders["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = fu
             if(!protocol_id) {
                 throw new Error("Protocol not set for message");
             }
-            var sender_id = message.getSender();
-            if(!sender_id) {
-                throw new Error("Sender not set for message");
-            }
             var receiver_id = message.getReceiver();
             if(!receiver_id) {
                 throw new Error("Receiver not set for message");
+            }
+            var sender_id = message.getSender();
+            if(!sender_id) {
+                throw new Error("Sender not set for message");
             }
             
             var headers = [];
@@ -196,8 +196,8 @@ encoders["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = fu
         
                     headers.push([
                         protocol_id,
-                        sender_id,
                         receiver_id,
+                        sender_id,
                         msg
                     ]);
                 }
@@ -205,19 +205,19 @@ encoders["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = fu
             return headers;
         },
         
-        encodeKey: function(util, sender, receiver) {
+        encodeKey: function(util, receiverId, senderId) {
             
             if(!util["protocols"]) util["protocols"] = {};
             if(!util["messageIndexes"]) util["messageIndexes"] = {};
-            if(!util["senders"]) util["senders"] = {};
             if(!util["receivers"]) util["receivers"] = {};
+            if(!util["senders"]) util["senders"] = {};
 
-            var protocol = getProtocolIndex("http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1");
+            var protocol = getProtocolIndex(uri);
             var messageIndex = getMessageIndex(protocol);
-            var sender = getSenderIndex(protocol, sender);
-            var receiver = getReceiverIndex(protocol, sender, receiver);
+            var receiver = getReceiverIndex(protocol, receiverId);
+            var sender = getSenderIndex(protocol, receiver, senderId);
             
-            return util.HEADER_PREFIX + protocol + "-" + sender + "-" + receiver + "-" + messageIndex;
+            return util.HEADER_PREFIX + protocol + "-" + receiver + "-" + sender + "-" + messageIndex;
         
             function getProtocolIndex(protocolId) {
                 if(util["protocols"][protocolId]) return util["protocols"][protocolId];
@@ -246,33 +246,33 @@ encoders["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = fu
                 return value;
             }
             
-            function getSenderIndex(protocolIndex, senderId) {
-                if(util["senders"][protocolIndex + ":" + senderId]) return util["senders"][protocolIndex + ":" + senderId];
+            function getReceiverIndex(protocolIndex, receiverId) {
+                if(util["receivers"][protocolIndex + ":" + receiverId]) return util["receivers"][protocolIndex + ":" + receiverId];
                 for( var i=1 ; ; i++ ) {
-                    var value = util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + i + "-sender");
+                    var value = util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + i + "-receiver");
                     if(!value) {
-                        util["senders"][protocolIndex + ":" + senderId] = i;
-                        util.applicator.setMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + i + "-sender", senderId);
+                        util["receivers"][protocolIndex + ":" + senderId] = i;
+                        util.applicator.setMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + i + "-receiver", receiverId);
                         return i;
                     } else
-                    if(value==senderId) {
-                        util["senders"][protocolIndex + ":" + senderId] = i;
+                    if(value==receiverId) {
+                        util["receivers"][protocolIndex + ":" + receiverId] = i;
                         return i;
                     }
                 }
             }
             
-            function getReceiverIndex(protocolIndex, senderIndex, receiverId) {
-                if(util["receivers"][protocolIndex + ":" + senderIndex + ":" + receiverId]) return util["receivers"][protocolIndex + ":" + senderIndex + ":" + receiverId];
+            function getSenderIndex(protocolIndex, receiverIndex, senderId) {
+                if(util["senders"][protocolIndex + ":" + receiverIndex + ":" + receiverId]) return util["senders"][protocolIndex + ":" + receiverIndex + ":" + senderId];
                 for( var i=1 ; ; i++ ) {
-                    var value = util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + senderIndex + "-" + i + "-receiver");
+                    var value = util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + receiverIndex + "-" + i + "-sender");
                     if(!value) {
-                        util["receivers"][protocolIndex + ":" + senderIndex + ":" + receiverId] = i;
-                        util.applicator.setMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + senderIndex + "-" + i + "-receiver", receiverId);
+                        util["senders"][protocolIndex + ":" + receiverIndex + ":" + senderId] = i;
+                        util.applicator.setMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + receiverIndex + "-" + i + "-sender", senderId);
                         return i;
                     } else
-                    if(value==receiverId) {
-                        util["receivers"][protocolIndex + ":" + senderIndex + ":" + receiverId] = i;
+                    if(value==senderId) {
+                        util["senders"][protocolIndex + ":" + receiverIndex + ":" + senderId] = i;
                         return i;
                     }
                 }

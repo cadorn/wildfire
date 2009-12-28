@@ -50,6 +50,7 @@ exports.testScript = function() {
     });
 
     ASSERT.deepEqual(
+        received,
         [
             [
                 "Meta Data",
@@ -58,8 +59,7 @@ exports.testScript = function() {
                     "command": command
                 }
             ]
-        ],
-        received);
+        ]);
 }
 
 exports.testInline = function() {
@@ -95,13 +95,13 @@ exports.testInline = function() {
 
     // test result
     ASSERT.deepEqual(
+        received,
         [
             [
                 "Meta Data",
                 "Message Data"
             ]
-        ],
-        received);
+        ]);
 }
 
 if (require.main == module.id)

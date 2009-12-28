@@ -89,18 +89,17 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
     if(typeof rawHeaders != "object") {
         rawHeaders = text_header_to_object(rawHeaders);
     }
-    
-    var protocols = {};
 
-    var senders = {};
+    var protocols = {};
     var receivers = {};
+    var senders = {};
     var messages = {};
     
     // parse the raw headers into messages
     for( var i in rawHeaders ) {
         parseHeader(rawHeaders[i].name.toLowerCase(), rawHeaders[i].value);
     }
-    
+
     // deliver the messages to the appropriate receivers
     for( var receiverKey in messages ) {
         // determine receiver
@@ -134,8 +133,8 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
     
     // cleanup
     delete protocols;
-    delete senders;
     delete receivers;
+    delete senders;
     delete messages;
     
 
@@ -150,7 +149,7 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
                 var id = parseInt(name.substr(self.HEADER_PREFIX.length,index-self.HEADER_PREFIX.length));
                 
                 if(protocols[id]) {
-                    protocols[id].parse(senders, receivers, messages, name.substr(index+1), value);
+                    protocols[id].parse(receivers, senders, messages, name.substr(index+1), value);
                 }
             }
         }
