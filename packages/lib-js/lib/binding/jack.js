@@ -6,7 +6,7 @@ var MESSAGE = require("../message");
 var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
 var dispatcher = DISPATCHER.Dispatcher();
 dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
-dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/handler/jack.js');
+dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/binding/jack.js');
 dispatcher.setChannel(channel);
 
 exports.Dispatcher = function(app) {

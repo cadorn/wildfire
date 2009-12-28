@@ -1,6 +1,6 @@
 
 var JACK = require("jack", "github.com/cadorn/narwhal/raw/experimental/catalogs/jack");
-var WILDFIRE = require("handler/jack", "github.com/cadorn/wildfire/raw/master/lib-js");
+var WILDFIRE = require("binding/jack", "github.com/cadorn/wildfire/raw/master/lib-js");
 
 var App = function(env) {
 

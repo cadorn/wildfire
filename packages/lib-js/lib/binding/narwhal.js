@@ -7,7 +7,7 @@ var MESSAGE = require("../message");
 var channel = CHANNEL.ShellCommandChannel();
 var dispatcher = DISPATCHER.Dispatcher();
 dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
-dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/handler/narwhal.js');
+dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/binding/narwhal.js');
 
 function init() {
     dispatcher.setChannel(channel);

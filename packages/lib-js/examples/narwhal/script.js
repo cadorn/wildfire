@@ -1,4 +1,4 @@
-var WILDFIRE = require("handler/narwhal", "github.com/cadorn/wildfire/raw/master/lib-js");
+var WILDFIRE = require("binding/narwhal", "github.com/cadorn/wildfire/raw/master/lib-js");
 
 WILDFIRE.target("http://pinf.org/cadorn.org/fireconsole").send(
     "Meta Data",

@@ -82,7 +82,7 @@ exports.testInline = function() {
     // run inline
 
     // --- in the parent context
-    var WILDFIRE = require("handler/narwhal", "github.com/cadorn/wildfire/raw/master/lib-js");
+    var WILDFIRE = require("binding/narwhal", "github.com/cadorn/wildfire/raw/master/lib-js");
     
     WILDFIRE.setChannel(channel);
     
