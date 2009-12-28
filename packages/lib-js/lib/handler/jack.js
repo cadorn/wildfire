@@ -6,7 +6,7 @@ var MESSAGE = require("../message");
 var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
 var dispatcher = DISPATCHER.Dispatcher();
 dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
-dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/handler/narwhal.js');
+dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/handler/jack.js');
 dispatcher.setChannel(channel);
 
 exports.Dispatcher = function(app) {
@@ -15,9 +15,14 @@ exports.Dispatcher = function(app) {
         var headerApplicator = {
             setMessagePart: function(name, value) {
                 response.headers[name] = value;
+            },
+            getMessagePart: function(name) {
+                if(!response.headers[name]) return null;
+                return response.headers[name];
             }
         };
-        channel.flush(headerApplicator);
+        channel.setMessagePartHandler(headerApplicator);
+        channel.flush();
         return response;
     }
 }

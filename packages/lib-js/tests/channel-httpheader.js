@@ -29,9 +29,9 @@ exports.testSmall = function() {
     ASSERT.deepEqual(
         [
             ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ['x-wf-1-index', '2'],
             ['x-wf-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
             ['x-wf-1-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
-            ['x-wf-1-index', '2'],
             ['x-wf-1-1-1-1', '23|{"line":10}|Hello World|'],
             ['x-wf-1-1-1-2', '23|{"line":10}|Hello World|']
         ],
@@ -43,8 +43,6 @@ exports.testSmall = function() {
 exports.testLarge = function() {
     
     var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
-
-print(channel.getOutgoing());
     channel.setMessagePartMaxLength(10);
     
     var dispatcher = DISPATCHER.Dispatcher();
@@ -69,12 +67,52 @@ print(channel.getOutgoing());
     ASSERT.deepEqual(
         [
             ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ["x-wf-1-index", "3"],
             ['x-wf-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
             ['x-wf-1-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
-            ["x-wf-1-index", "3"],
             ["x-wf-1-1-1-1", "23||line 0; l|\\"],
             ["x-wf-1-1-1-2", "|ine 1; lin|"],
             ["x-wf-1-1-1-3", "|e 2|"],
+        ],
+        flusher.getHeaders()
+    );
+}
+
+exports.testMultipleProtocols = function() {
+    
+    var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
+    
+    var dispatcher = DISPATCHER.Dispatcher();
+    dispatcher.setChannel(channel);
+    
+    var message = MESSAGE.Message();
+    message.setData("Hello World");
+    message.setMeta('{"line":10}');
+    message.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    message.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
+    message.setReceiver('http://pinf.org/cadorn.org/fireconsole');
+
+    dispatcher.dispatch(message);
+
+    message.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.2');
+
+    dispatcher.dispatch(message);
+
+    var flusher = new Flusher();
+    channel.flush(flusher);
+
+    ASSERT.deepEqual(
+        [
+            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ['x-wf-1-index', '1'],
+            ['x-wf-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
+            ['x-wf-1-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
+            ['x-wf-1-1-1-1', '23|{"line":10}|Hello World|'],
+            ['x-wf-protocol-2', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.2'],
+            ['x-wf-2-index', '1'],
+            ['x-wf-2-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
+            ['x-wf-2-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
+            ['x-wf-2-1-1-1', '23|{"line":10}|Hello World|']
         ],
         flusher.getHeaders()
     );
@@ -98,6 +136,14 @@ Flusher.prototype.setMessagePart = function(name, value) {
     if(i==0 || (i==this.headers.length && this.headers[i-1][0]!=name)) {
         this.headers.push([name, value]);
     }
+}
+Flusher.prototype.getMessagePart = function(name) {
+    for( var i=0 ; i<this.headers.length ; i++ ) {
+        if(this.headers[i][0]==name) {
+            return this.headers[i][1];
+        }
+    }
+    return null;
 }
 
 if (require.main == module.id)

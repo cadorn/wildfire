@@ -1,4 +1,7 @@
 
+function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
+
+
 var PROTOCOLS = require("./protocols");
 
 
@@ -9,7 +12,6 @@ var Channel = exports.Channel = function () {
 
 Channel.prototype.__construct = function(message) {
     this.receivers = [];
-    this.messageIndex = 0;    
     this.messagePartMaxLength = 5000;
     this.outgoingQueue = [];
 }
@@ -24,7 +26,7 @@ Channel.prototype.enqueueOutgoing = function(message) {
         }
     }
     if(!enqueue) return true;
-    this.outgoingQueue.push(message);
+    this.outgoingQueue.push(this.encode(message));
     return true;
 }
 
@@ -36,43 +38,115 @@ Channel.prototype.setMessagePartMaxLength = function(length) {
     this.messagePartMaxLength = length;
 }
 
-Channel.prototype.getMessageIndex = function(increment) {
-    increment = increment || 0;
-    this.messageIndex += increment;
-    return this.messageIndex;
-
-}
-
 Channel.prototype.flush = function(applicator) {
     var messages = this.getOutgoing();
     if(messages.length==0) {
         return 0;
     }
     
-    applicator = applicator || this;
-
-    applicator.setMessagePart(this.HEADER_PREFIX + "protocol-1", "http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1");
-    applicator.setMessagePart(this.HEADER_PREFIX + "1-1-sender", "http://pinf.org/cadorn.org/wildfire/packages/lib-js");
-    applicator.setMessagePart(this.HEADER_PREFIX + "1-1-1-receiver", "http://pinf.org/cadorn.org/fireconsole");
-    
-    // TODO: try and read the last messageIndex from the outgoing headers
+    var self = this;
+    var protocols = {};
+    var messageIndexes = {};
+    var senders = {};
+    var receivers = {};
             
     for( var i=0 ; i<messages.length ; i++ ) {
-        var headers = this.encode(messages[i]);
+        var headers = messages[i];//this.encode(messages[i]);
         for( var j=0 ; j<headers.length ; j++ ) {
-            applicator.setMessagePart(this.HEADER_PREFIX + "1-index", ""+ headers[j][0]);
-            applicator.setMessagePart(headers[j][1], headers[j][2]);            
+            
+            var protocol = getProtocolIndex(headers[j][0]);
+            var messageIndex = getMessageIndex(protocol);
+            var sender = getSenderIndex(protocol, headers[j][1]);
+            var receiver = getReceiverIndex(protocol, sender, headers[j][2]);
+            
+            applicator.setMessagePart(
+                self.HEADER_PREFIX + protocol + "-" + sender + "-" + receiver + "-" + messageIndex,
+                headers[j][3]
+            );
         }
     }    
+                
+    function getProtocolIndex(protocolId) {
+        if(protocols[protocolId]) return protocols[protocolId];
+        for( var i=1 ; ; i++ ) {
+            var value = applicator.getMessagePart(self.HEADER_PREFIX + "protocol-" + i);
+            if(!value) {
+                protocols[protocolId] = i;
+                applicator.setMessagePart(self.HEADER_PREFIX + "protocol-" + i, protocolId);
+                return i;
+            } else
+            if(value==protocolId) {
+                protocols[protocolId] = i;
+                return i;
+            }
+        }
+    }
+
+    function getMessageIndex(protocolIndex) {
+        var value = messageIndexes[protocolIndex] || applicator.getMessagePart(self.HEADER_PREFIX + protocolIndex + "-index");
+        if(!value) {
+            value = 0;
+        }
+        value++;
+        messageIndexes[protocolIndex] = value;
+        applicator.setMessagePart(self.HEADER_PREFIX + protocolIndex + "-index", value);
+        return value;
+    }
+    
+    function getSenderIndex(protocolIndex, senderId) {
+        if(senders[protocolIndex + ":" + senderId]) return senders[protocolIndex + ":" + senderId];
+        for( var i=1 ; ; i++ ) {
+            var value = applicator.getMessagePart(self.HEADER_PREFIX + protocolIndex + "-" + i + "-sender");
+            if(!value) {
+                senders[protocolIndex + ":" + senderId] = i;
+                applicator.setMessagePart(self.HEADER_PREFIX + protocolIndex + "-" + i + "-sender", senderId);
+                return i;
+            } else
+            if(value==senderId) {
+                senders[protocolIndex + ":" + senderId] = i;
+                return i;
+            }
+        }
+    }
+    
+    function getReceiverIndex(protocolIndex, senderIndex, receiverId) {
+        if(senders[protocolIndex + ":" + senderIndex + ":" + receiverId]) return senders[protocolIndex + ":" + senderIndex + ":" + receiverId];
+        for( var i=1 ; ; i++ ) {
+            var value = applicator.getMessagePart(self.HEADER_PREFIX + protocolIndex + "-" + senderIndex + "-" + i + "-receiver");
+            if(!value) {
+                senders[protocolIndex + ":" + senderIndex + ":" + receiverId] = i;
+                applicator.setMessagePart(self.HEADER_PREFIX + protocolIndex + "-" + senderIndex + "-" + i + "-receiver", receiverId);
+                return i;
+            } else
+            if(value==receiverId) {
+                senders[protocolIndex + ":" + senderIndex + ":" + receiverId] = i;
+                return i;
+            }
+        }
+    }
+
 }
 
 Channel.prototype.setMessagePart = function(name, value) {
 }
 
+Channel.prototype.getMessagePart = function(name) {
+    return null;
+}
+
 Channel.prototype.encode = function(message) {
-    var protocol_index = 1;
-    var sender_index = 1;
-    var receiver_index = 1;
+    var protocol_id = message.getProtocol();
+    if(!protocol_id) {
+        throw new Error("Protocol not set for message");
+    }
+    var sender_id = message.getSender();
+    if(!sender_id) {
+        throw new Error("Sender not set for message");
+    }
+    var receiver_id = message.getReceiver();
+    if(!receiver_id) {
+        throw new Error("Receiver not set for message");
+    }
     
     var headers = [];
     
@@ -83,16 +157,9 @@ Channel.prototype.encode = function(message) {
     var parts = chunk_split(data, this.messagePartMaxLength);
 
     var part,
-        message_index,
         msg;
     for( var i=0 ; i<parts.length ; i++) {
         if (part = parts[i]) {
-
-            message_index = this.getMessageIndex(1);
-
-            if (message_index > 99999) {
-                throw new Error('Maximum number (99,999) of messages reached!');
-            }
 
             msg = "";
 
@@ -105,11 +172,9 @@ Channel.prototype.encode = function(message) {
             }
 
             headers.push([
-                message_index,
-                this.HEADER_PREFIX + protocol_index +
-                     '-' + sender_index +
-                     '-' + receiver_index +
-                     '-' + message_index,
+                protocol_id,
+                sender_id,
+                receiver_id,
                 msg
             ]);
         }

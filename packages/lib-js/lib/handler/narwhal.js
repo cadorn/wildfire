@@ -23,6 +23,10 @@ exports.flush = function() {
     channel.flush({
         setMessagePart: function(name, value) {
             buffer[name] = value;
+        },
+        getMessagePart: function(name) {
+            if(!buffer[name]) return null;
+            return buffer[name];
         }
     });
     for( var key in buffer ) {
