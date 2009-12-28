@@ -5,9 +5,9 @@ Wildfire for Jack
 
 Send wildfire messages from jack apps:
 
-    var WILDFIRE = require("handler/jack", "wildfire");
+    var WILDFIRE = require("binding/jack", "wildfire");
 	var App = function(env) {
-	    WILDFIRE.getAPI().send(
+	    WILDFIRE.target("http://pinf.org/cadorn.org/fireconsole").send(
 	        "Message Data",
 	        "Meta Data"
 	    );

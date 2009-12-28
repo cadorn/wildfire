@@ -1,9 +1,11 @@
 #!/usr/bin/env narwhal
 
 var FILE = require("file");
+var PACKAGES = require("packages");
 
-// Put jack on the path
-require.paths.push(FILE.Path(module.path).join("../../../../../using/github.com/cadorn/narwhal/raw/experimental/catalogs/jack/lib"));
+PACKAGES.load([
+    FILE.Path(module.path).join("../../../../../using/github.com/cadorn/narwhal/raw/experimental/catalogs/jack").valueOf()
+]);
 
 var JACKUP = require("jackup", "github.com/cadorn/narwhal/raw/experimental/catalogs/jack");
 

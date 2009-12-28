@@ -12,17 +12,15 @@ dispatcher.setChannel(channel);
 exports.Dispatcher = function(app) {
     return function(env) {
         var response = app(env);
-        var headerApplicator = {
+        channel.flush({
             setMessagePart: function(name, value) {
-                response.headers[name] = value;
+                response.headers[name] = ""+value;
             },
             getMessagePart: function(name) {
                 if(!response.headers[name]) return null;
                 return response.headers[name];
             }
-        };
-        channel.setMessagePartHandler(headerApplicator);
-        channel.flush();
+        });
         return response;
     }
 }
