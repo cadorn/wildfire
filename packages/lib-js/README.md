@@ -58,6 +58,12 @@ Sending HTTP header messages:
     });
 
 
+Examples
+--------
+
+  * [Jack](http://github.com/cadorn/wildfire/tree/master/packages/lib-js/examples/jack/)
+  * [Narwhal](http://github.com/cadorn/wildfire/tree/master/packages/lib-js/examples/narwhal/)
+
 
 Testing
 -------

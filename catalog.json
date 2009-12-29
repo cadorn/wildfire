@@ -6,9 +6,9 @@
             "catalog": "http://github.com/cadorn/narwhal/raw/experimental/catalogs/default.catalog.json",
             "name": "jack"
         },
-        "js": {
+        "lib-js-deprecated": {
             "location": "http://github.com/cadorn/wildfire/zipball/master/",
-            "path": "packages/js"
+            "path": "packages/lib-js-deprecated"
         },
         "lib-php": {
             "location": "http://github.com/cadorn/wildfire/zipball/master/",

@@ -4,9 +4,9 @@
         "narwhal"
     ],
     "using": {
-        "js": {
+        "lib-js-deprecated": {
             "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
-            "name": "js"
+            "name": "lib-js-deprecated"
         },
         "lib-php": {
             "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
