@@ -2,7 +2,7 @@
 function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 
 
-var PROTOCOLS = require("./protocols");
+var PROTOCOL = require("./protocol");
 
 
 var Channel = exports.Channel = function () {
@@ -56,17 +56,17 @@ Channel.prototype.flush = function(applicator) {
         var headers = messages[i];
         for( var j=0 ; j<headers.length ; j++ ) {            
             applicator.setMessagePart(
-                PROTOCOLS.getEncoder(headers[j][0]).encodeKey(util, headers[j][1], headers[j][2]),
+                PROTOCOL.factory(headers[j][0]).encodeKey(util, headers[j][1], headers[j][2]),
                 headers[j][3]
             );
         }
     }
 }
 
-Channel.prototype.setMessagePart = function(name, value) {
+Channel.prototype.setMessagePart = function(key, value) {
 }
 
-Channel.prototype.getMessagePart = function(name) {
+Channel.prototype.getMessagePart = function(key) {
     return null;
 }
 
@@ -75,7 +75,7 @@ Channel.prototype.encode = function(message) {
     if(!protocol_id) {
         throw new Error("Protocol not set for message");
     }
-    return PROTOCOLS.getEncoder(protocol_id).encodeMessage(this.options, message);
+    return PROTOCOL.factory(protocol_id).encodeMessage(this.options, message);
 }
 
 Channel.prototype.addReceiver = function(receiver) {
@@ -90,6 +90,7 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         rawHeaders = text_header_to_object(rawHeaders);
     }
 
+    var buffers = {};
     var protocols = {};
     var receivers = {};
     var senders = {};
@@ -131,7 +132,8 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         }
     }
     
-    // cleanup
+    // cleanup - does this help with gc?
+    delete buffers;
     delete protocols;
     delete receivers;
     delete senders;
@@ -143,13 +145,13 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         if (name.substr(0, self.HEADER_PREFIX.length) == self.HEADER_PREFIX) {
             if (name.substring(0,self.HEADER_PREFIX.length + 9) == self.HEADER_PREFIX + 'protocol-') {
                 var id = parseInt(name.substr(self.HEADER_PREFIX.length + 9));
-                protocols[id] = PROTOCOLS.getParser(value);
+                protocols[id] = PROTOCOL.factory(value);
             } else {
                 var index = name.indexOf('-',self.HEADER_PREFIX.length);
                 var id = parseInt(name.substr(self.HEADER_PREFIX.length,index-self.HEADER_PREFIX.length));
                 
                 if(protocols[id]) {
-                    protocols[id].parse(receivers, senders, messages, name.substr(index+1), value);
+                    protocols[id].parse(buffers, receivers, senders, messages, name.substr(index+1), value);
                 }
             }
         }

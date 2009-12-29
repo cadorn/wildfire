@@ -49,10 +49,10 @@ Sending HTTP header messages:
 
     // Flush headers via:
     channel.flush({
-        setMessagePart: function(name, value) {
+        setMessagePart: function(key, value) {
             // set (always overwrite) headers on response object
         },
-        getMessagePart: function(name) {
+        getMessagePart: function(key) {
             // return header set at name on response object
         }
     });

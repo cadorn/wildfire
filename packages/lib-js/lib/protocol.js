@@ -8,32 +8,36 @@ function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 var MESSAGE = require("./message");
 
 
-var parsers = {};
-var encoders = {};
+var instances = {};
+var protocols = {};
 
-exports.getParser = function(uri) {
-    if(parsers[uri]) {
-        return parsers[uri](uri);
+exports.factory = function(uri) {
+    if(instances[uri]) {
+        return instances[uri];
     }
-    return null;
-}
-
-exports.getEncoder = function(uri) {
-    if(encoders[uri]) {
-        return encoders[uri](uri);
+    if(protocols[uri]) {
+        return (instances[uri] = protocols[uri](uri));
     }
     return null;
 }
    
-parsers["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = 
-parsers["__TEST__"] = function(uri) {
+protocols["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = 
+protocols["__TEST__"] = function(uri) {
 
-    var buffers = {};
+    function chunk_split(value, length) {
+        var parts = [];
+        var part;
+        while( (part = value.substr(0, length)) && part.length > 0 ) {
+            parts.push(part);
+            value = value.substr(length);
+        }
+        return parts;
+    }
 
     return {
-        parse: function(receivers, senders, messages, name, value) {
+        parse: function(buffers, receivers, senders, messages, key, value) {
 
-            var parts = name.split('-');
+            var parts = key.split('-');
             // parts[0] - receiver
             // parts[1] - sender
             // parts[2] - message id/index
@@ -71,19 +75,18 @@ parsers["__TEST__"] = function(uri) {
             
             // this supports message parts arriving in any order as fast as possible
             function enqueueBuffer(index, receiver, sender, value, position, length) {
-                var key = receiver;
-                if(!buffers[key]) {
-                    buffers[key] = {"firsts": 0, "lasts": 0, "messages": []};
+                if(!buffers[receiver]) {
+                    buffers[receiver] = {"firsts": 0, "lasts": 0, "messages": []};
                 }
-                if(position=="first") buffers[key].firsts += 1;
-                else if(position=="last") buffers[key].lasts += 1;
-                buffers[key].messages.push([index, value, position, length]);
+                if(position=="first") buffers[receiver].firsts += 1;
+                else if(position=="last") buffers[receiver].lasts += 1;
+                buffers[receiver].messages.push([index, value, position, length]);
                 
                 // if we have a mathching number of first and last parts we assume we have
                 // a complete message so we try and join it
-                if(buffers[key].firsts>0 && buffers[key].firsts==buffers[key].lasts) {
+                if(buffers[receiver].firsts>0 && buffers[receiver].firsts==buffers[receiver].lasts) {
                     // first we sort all messages
-                    buffers[key].messages.sort(
+                    buffers[receiver].messages.sort(
                         function (a, b) {
                             return a[0] - b[0];
                         }
@@ -92,23 +95,23 @@ parsers["__TEST__"] = function(uri) {
                     // until "last" is found
                     var startIndex = null;
                     var buffer = null;
-                    for( i=0 ; i<buffers[key].messages.length ; i++ ) {
-                        if(buffers[key].messages[i][2]=="first") {
+                    for( i=0 ; i<buffers[receiver].messages.length ; i++ ) {
+                        if(buffers[receiver].messages[i][2]=="first") {
                             startIndex = i;
-                            buffer = buffers[key].messages[i][1];
+                            buffer = buffers[receiver].messages[i][1];
                         } else
                         if(startIndex!==null) {
-                            buffer += buffers[key].messages[i][1];
-                            if(buffers[key].messages[i][2]=="last") {
+                            buffer += buffers[receiver].messages[i][1];
+                            if(buffers[receiver].messages[i][2]=="last") {
                                 // if our buffer matches the message length
                                 // we have a complete message
-                                if(buffer.length==buffers[key].messages[startIndex][3]) {
+                                if(buffer.length==buffers[receiver].messages[startIndex][3]) {
                                     // message is complete
-                                    enqueueMessage(buffers[key].messages[startIndex][0], receiver, sender, buffer);
-                                    buffers[key].messages.splice(startIndex, i-startIndex);
-                                    buffers[key].firsts -= 1;
-                                    buffers[key].lasts -= 1;
-                                    if(buffers[key].messages.length==0) delete buffers[key];
+                                    enqueueMessage(buffers[receiver].messages[startIndex][0], receiver, sender, buffer);
+                                    buffers[receiver].messages.splice(startIndex, i-startIndex);
+                                    buffers[receiver].firsts -= 1;
+                                    buffers[receiver].lasts -= 1;
+                                    if(buffers[receiver].messages.length==0) delete buffers[receiver];
                                     startIndex = null;
                                     buffer = null;
                                 } else {
@@ -136,25 +139,7 @@ parsers["__TEST__"] = function(uri) {
                 
                 messages[receiver].push([index, message]);
             }
-        }
-    };
-};
-
-
-encoders["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = 
-encoders["__TEST__"] = function(uri) {
-
-    function chunk_split(value, length) {
-        var parts = [];
-        var part;
-        while( (part = value.substr(0, length)) && part.length > 0 ) {
-            parts.push(part);
-            value = value.substr(length);
-        }
-        return parts;
-    }
-
-    return {
+        },
         
         encodeMessage: function(options, message) {
                   
@@ -251,7 +236,7 @@ encoders["__TEST__"] = function(uri) {
                 for( var i=1 ; ; i++ ) {
                     var value = util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + i + "-receiver");
                     if(!value) {
-                        util["receivers"][protocolIndex + ":" + senderId] = i;
+                        util["receivers"][protocolIndex + ":" + receiverId] = i;
                         util.applicator.setMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + i + "-receiver", receiverId);
                         return i;
                     } else
@@ -263,7 +248,7 @@ encoders["__TEST__"] = function(uri) {
             }
             
             function getSenderIndex(protocolIndex, receiverIndex, senderId) {
-                if(util["senders"][protocolIndex + ":" + receiverIndex + ":" + receiverId]) return util["senders"][protocolIndex + ":" + receiverIndex + ":" + senderId];
+                if(util["senders"][protocolIndex + ":" + receiverIndex + ":" + senderId]) return util["senders"][protocolIndex + ":" + receiverIndex + ":" + senderId];
                 for( var i=1 ; ; i++ ) {
                     var value = util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-" + receiverIndex + "-" + i + "-sender");
                     if(!value) {
@@ -277,6 +262,7 @@ encoders["__TEST__"] = function(uri) {
                     }
                 }
             }
-        }
+        }        
     };
 };
+     

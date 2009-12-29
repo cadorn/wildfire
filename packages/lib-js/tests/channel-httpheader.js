@@ -6,39 +6,6 @@ var DISPATCHER = require("dispatcher");
 var MESSAGE = require("message");
 
 
-
-exports.testDispatcher = function() {
-    
-    var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
-    
-    var dispatcher = DISPATCHER.Dispatcher();
-    dispatcher.setChannel(channel);
-    dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
-    dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
-    dispatcher.setReceiver('http://pinf.org/cadorn.org/fireconsole');
-    
-    var message = MESSAGE.Message();
-    message.setData("Hello World");
-    message.setMeta('{"line":10}');
-    
-    dispatcher.dispatch(message);
-
-    var flusher = new Flusher();
-    channel.flush(flusher);
-
-    ASSERT.deepEqual(
-        flusher.getHeaders(),
-        [
-            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
-            ['x-wf-1-index', '1'],
-            ['x-wf-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
-            ['x-wf-1-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
-            ['x-wf-1-1-1-1', '23|{"line":10}|Hello World|']
-        ]
-    );
-}
-
-
 exports.testSmall = function() {
     
     var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
@@ -60,7 +27,7 @@ exports.testSmall = function() {
     channel.flush(flusher);
 
     ASSERT.deepEqual(
-        flusher.getHeaders(),
+        flusher.getMessageParts(),
         [
             ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
             ['x-wf-1-index', '2'],
@@ -98,7 +65,7 @@ exports.testLarge = function() {
     channel.flush(flusher);
 
     ASSERT.deepEqual(
-        flusher.getHeaders(),
+        flusher.getMessageParts(),
         [
             ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
             ["x-wf-1-index", "3"],
@@ -135,7 +102,7 @@ exports.testMultipleProtocols = function() {
     channel.flush(flusher);
 
     ASSERT.deepEqual(
-        flusher.getHeaders(),
+        flusher.getMessageParts(),
         [
             ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
             ['x-wf-1-index', '1'],
@@ -175,7 +142,7 @@ exports.testMultipleSenders = function() {
     channel.flush(flusher);
 
     ASSERT.deepEqual(
-        flusher.getHeaders(),
+        flusher.getMessageParts(),
         [
             ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
             ['x-wf-1-index', '2'],
@@ -188,29 +155,67 @@ exports.testMultipleSenders = function() {
     );
 }
 
-var Flusher = function() {
-    this.headers = [];
-};
-Flusher.prototype.getHeaders = function() {
-    return this.headers;
+exports.testMultipleReceivers = function() {
+    
+    var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
+    
+    var dispatcher = DISPATCHER.Dispatcher();
+    dispatcher.setChannel(channel);
+    
+    var message = MESSAGE.Message();
+    message.setData("Hello World");
+    message.setMeta('{"line":10}');
+    message.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    message.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
+    message.setReceiver('http://pinf.org/cadorn.org/fireconsole');
+
+    dispatcher.dispatch(message);
+
+    message.setReceiver('__TEST__');
+
+    dispatcher.dispatch(message);
+
+    var flusher = new Flusher();
+    channel.flush(flusher);
+
+    ASSERT.deepEqual(
+        flusher.getMessageParts(),
+        [
+            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ['x-wf-1-index', '2'],
+            ['x-wf-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
+            ['x-wf-1-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
+            ['x-wf-1-1-1-1', '23|{"line":10}|Hello World|'],
+            ['x-wf-1-2-receiver', '__TEST__'],
+            ['x-wf-1-2-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
+            ['x-wf-1-2-1-2', '23|{"line":10}|Hello World|'],
+        ]
+    );
 }
-Flusher.prototype.setMessagePart = function(name, value) {
+
+var Flusher = function() {
+    this.parts = [];
+};
+Flusher.prototype.getMessageParts = function() {
+    return this.parts;
+}
+Flusher.prototype.setMessagePart = function(key, value) {
     // replace headers with same name
-    for( var i=0 ; i<this.headers.length ; i++ ) {
-        if(this.headers[i][0]==name) {
-            this.headers[i][1] = '' + value;
+    for( var i=0 ; i<this.parts.length ; i++ ) {
+        if(this.parts[i][0]==key) {
+            this.parts[i][1] = '' + value;
             break;
         }
     }
     // add header if not already found
-    if(i==0 || (i==this.headers.length && this.headers[i-1][0]!=name)) {
-        this.headers.push([name, value]);
+    if(i==0 || (i==this.parts.length && this.parts[i-1][0]!=key)) {
+        this.parts.push([key, value]);
     }
 }
-Flusher.prototype.getMessagePart = function(name) {
-    for( var i=0 ; i<this.headers.length ; i++ ) {
-        if(this.headers[i][0]==name) {
-            return this.headers[i][1];
+Flusher.prototype.getMessagePart = function(key) {
+    for( var i=0 ; i<this.parts.length ; i++ ) {
+        if(this.parts[i][0]==key) {
+            return this.parts[i][1];
         }
     }
     return null;
