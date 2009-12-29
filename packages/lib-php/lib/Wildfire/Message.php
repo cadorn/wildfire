@@ -6,6 +6,7 @@ class Wildfire_Message
     private $receiver = null;
     private $data = null;
     private $meta = null;
+    private $protocol = null;
     
     public function setData($data)
     {
@@ -35,6 +36,16 @@ class Wildfire_Message
     public function getMeta()
     {
         return $this->meta;
+    }
+    
+    public function setProtocol($protocol)
+    {
+        $this->protocol = $protocol;
+    }
+    
+    public function getProtocol()
+    {
+        return $this->protocol;
     }
     
     public function setSender($sender)
