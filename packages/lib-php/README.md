@@ -7,13 +7,30 @@ Use this library to send wildfire messages from PHP.
 Usage
 -----
 
-TODO
+Sending HTTP header messages:
+
+    $channel = new Wildfire_MessageTest__Wildfire_Channel_HttpHeader();
+    
+    $dispatcher = new Wildfire_Dispatcher();
+    $dispatcher->setChannel($channel);
+    
+    $message = new Wildfire_Message();
+    $message->setData('Hello World');
+    $message->setMeta('{"line":10}');
+    $message->setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    $message->setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-php');
+    $message->setReceiver('http://pinf.org/cadorn.org/fireconsole');        
+    
+    $dispatcher->dispatch($message);
+    
+    $channel->flush();
+
 
 
 Testing
 -------
 
-    phpunit tests
+    narwhal tests/all-tests.js
 
 
 

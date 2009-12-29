@@ -3,14 +3,27 @@ Wildfire
 
 Component to component communication used in [FireConsole](http://www.fireconsole.org/).
 
-Also see: [http://www.wildfirehq.org/](http://www.wildfirehq.org/)
+For a high-level brainstorm of wildfire see: [http://www.wildfirehq.org/](http://www.wildfirehq.org/)
+
+
+Protocols
+---------
+
+  * [http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1](http://github.com/cadorn/wildfire/blob/master/meta/Protocol/Component/0.1.md)
+  * [http://pinf.org/cadorn.org/wildfire/meta/Protocol/JsonStream/0.2](http://github.com/cadorn/wildfire/blob/master/meta/Protocol/JsonStream/0.2.md) (**DEPRECATED**)
+
+Libraries
+---------
+
+  * [PHP](http://github.com/cadorn/wildfire/blob/master/packages/lib-php/)
+  * [JavaScript](http://github.com/cadorn/wildfire/blob/master/packages/lib-js/)
 
 
 Links
 =====
 
- * [BERT and BERT-RPC](http://bert-rpc.org/)
-
+  * [Wildfire HQ](http://www.wildfirehq.org/)
+  * [BERT and BERT-RPC](http://bert-rpc.org/)
 
 
 License

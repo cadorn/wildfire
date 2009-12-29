@@ -9,7 +9,7 @@ Usage
 
 Receiving HTTP header messages:
 
-    var WILDFIRE = require("wildfire", "wildfire-js");
+    var WILDFIRE = require("wildfire", "wildfire");
     
     var receiver = WILDFIRE.Receiver();
     receiver.setId("<Receiver URI which is typically a URL>");
@@ -31,7 +31,7 @@ Receiving HTTP header messages:
 
 Sending HTTP header messages:
 
-    var WILDFIRE = require("wildfire", "wildfire-js");
+    var WILDFIRE = require("wildfire", "wildfire");
 
     var channel = WILDFIRE.HttpHeaderChannel();
     
