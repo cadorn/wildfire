@@ -158,7 +158,9 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
     }
     
     function text_header_to_object(text) {
-        // trim escape sequence \[0m from beginning if applicable
+        // trim escape sequences \[...m
+//        text = text.replace(/\x1B\x5B[^\x6D]*\x6D/g, "");
+        
         if(text.charCodeAt(0)==27 && text.charCodeAt(3)==109) {
             text = text.substring(4);
         }

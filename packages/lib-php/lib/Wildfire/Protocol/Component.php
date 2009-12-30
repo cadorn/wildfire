@@ -14,15 +14,15 @@ class Wildfire_Protocol_Component extends Wildfire_Protocol
 
             $protocol_id = $message->getProtocol();
             if(!$protocol_id) {
-                throw new Error("Protocol not set for message");
+                throw new Exception("Protocol not set for message");
             }
             $receiver_id = $message->getReceiver();
             if(!$receiver_id) {
-                throw new Error("Receiver not set for message");
+                throw new Exception("Receiver not set for message");
             }
             $sender_id = $message->getSender();
             if(!$sender_id) {
-                throw new Error("Sender not set for message");
+                throw new Exception("Sender not set for message");
             }
             
             $headers = array();
