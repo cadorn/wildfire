@@ -22,6 +22,10 @@ Send wildfire messages from jack apps:
 	};
 	exports.app = require("jack").ContentLength(App);
 
+Starting jack:
+
+    jackup --wildfire <config>
+
 Example
 -------
 
