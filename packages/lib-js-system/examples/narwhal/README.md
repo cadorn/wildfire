@@ -22,4 +22,4 @@ Example
     narwhal script.js
 
 The wildfire messages are sent to *stderr* which a wrapping program may intercept. See the
-[unit tests](http://github.com/cadorn/wildfire/blob/master/packages/lib-js/tests/channel-shellcommand.js) for example.
+[unit tests](http://github.com/cadorn/wildfire/blob/master/packages/lib-js-system/tests/channel-shellcommand.js) for example.
