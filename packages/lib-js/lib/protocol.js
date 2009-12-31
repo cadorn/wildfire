@@ -57,6 +57,9 @@ protocols["__TEST__"] = function(uri) {
             
             // 62|...|\
             var m = value.match(/^(\d*)?\|(.*)\|(\\)?$/);
+            if(!m) {
+                throw new Error("Error parsing message: " + value);
+            }
     
             // length present and message matches length - complete message
             if(m[1] && m[1]==m[2].length && !m[3]) {
@@ -70,7 +73,7 @@ protocols["__TEST__"] = function(uri) {
             if( !m[1] && !m[3] ) {
                 enqueueBuffer(parts[2], parts[0], parts[1], m[2], 'last');
             } else {
-                throw new Error('Error parsing message!');
+                throw new Error('Error parsing message: ' + value);
             }
             
             // this supports message parts arriving in any order as fast as possible

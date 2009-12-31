@@ -1,4 +1,6 @@
 
+require("wildfire").setBindingModule(module.id);
+
 const WILDFIRE_UID = "github.com/cadorn/wildfire/zipball/master/packages/lib-js";
 
 var SYSTEM = require("system");

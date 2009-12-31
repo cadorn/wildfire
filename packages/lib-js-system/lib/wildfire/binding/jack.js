@@ -1,4 +1,6 @@
 
+require("wildfire").setBindingModule(module.id);
+
 const WILDFIRE_UID = "github.com/cadorn/wildfire/zipball/master/packages/lib-js";
 
 var HTTP_HEADER_CHANNEL = require("channel-httpheader", WILDFIRE_UID);
@@ -40,4 +42,8 @@ exports.target = function(receiver) {
     var api = new API();
     api.receiver = receiver;
     return api;
+}
+
+exports.newMessage = function() {
+    return new MESSAGE.Message(dispatcher);
 }
