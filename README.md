@@ -16,7 +16,8 @@ Libraries
 ---------
 
   * [PHP](http://github.com/cadorn/wildfire/blob/master/packages/lib-php/)
-  * [JavaScript](http://github.com/cadorn/wildfire/blob/master/packages/lib-js/)
+  * [JavaScript - CommonJS using package](http://github.com/cadorn/wildfire/blob/master/packages/lib-js/)
+  * [JavaScript - CommonJS system package](http://github.com/cadorn/wildfire/blob/master/packages/lib-js-system/)
 
 
 Links
