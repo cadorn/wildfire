@@ -1,12 +1,14 @@
 
-var HTTP_HEADER_CHANNEL = require("../channel-httpheader");
-var DISPATCHER = require("../dispatcher");
-var MESSAGE = require("../message");
+const WILDFIRE_UID = "github.com/cadorn/wildfire/zipball/master/packages/lib-js";
+
+var HTTP_HEADER_CHANNEL = require("channel-httpheader", WILDFIRE_UID);
+var DISPATCHER = require("dispatcher", WILDFIRE_UID);
+var MESSAGE = require("message", WILDFIRE_UID);
 
 var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
 var dispatcher = DISPATCHER.Dispatcher();
 dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
-dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/binding/jack.js');
+dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js-system/lib/wildfire/binding/jack.js');
 dispatcher.setChannel(channel);
 
 exports.Dispatcher = function(app) {

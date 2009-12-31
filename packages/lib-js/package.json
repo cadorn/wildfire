@@ -1,14 +1,3 @@
 {
-    "name": "lib-js",
-    "build": {
-        "using": {
-            "jack": {
-                "catalog": "http://github.com/cadorn/narwhal/raw/experimental/catalogs/default.catalog.json",
-                "name": "jack"
-            }
-        },
-        "targets": {
-            "reheat-examples": "build/reheat-examples"
-        }
-    }
+    "name": "lib-js"
 }

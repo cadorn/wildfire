@@ -17,6 +17,10 @@
         "lib-js": {
             "location": "http://github.com/cadorn/wildfire/zipball/master/",
             "path": "packages/lib-js"
+        },
+        "lib-js-system": {
+            "location": "http://github.com/cadorn/wildfire/zipball/master/",
+            "path": "packages/lib-js-system"
         }
     }
 }

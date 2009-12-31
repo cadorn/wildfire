@@ -36,6 +36,10 @@ Channel.prototype.getOutgoing = function() {
     return this.outgoingQueue;
 }
 
+Channel.prototype.clearOutgoing = function() {
+    this.outgoingQueue = [];
+}
+
 Channel.prototype.setMessagePartMaxLength = function(length) {
     this.options.messagePartMaxLength = length;
 }
@@ -61,6 +65,8 @@ Channel.prototype.flush = function(applicator) {
             );
         }
     }
+
+    this.clearOutgoing();
 }
 
 Channel.prototype.setMessagePart = function(key, value) {

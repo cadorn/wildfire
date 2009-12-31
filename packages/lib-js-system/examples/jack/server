@@ -7,12 +7,13 @@ PACKAGES.load([
     FILE.Path(module.path).join("../../../../../using/github.com/cadorn/narwhal/raw/experimental/catalogs/jack").valueOf()
 ]);
 
-var JACKUP = require("jackup", "github.com/cadorn/narwhal/raw/experimental/catalogs/jack");
+var JACKUP = require("jackup");
 
 function jackup(args) {
     args.shift();
     args.unshift(FILE.Path(module.path).join("../app.js").valueOf());
     args.unshift("-r");         // reload application on each request
+    args.unshift("--wildfire"); // enable wildfire support
     args.unshift("jackup");
 
     JACKUP.main(args);

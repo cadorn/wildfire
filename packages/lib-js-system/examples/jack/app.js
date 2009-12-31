@@ -1,12 +1,11 @@
 
-var JACK = require("jack", "github.com/cadorn/narwhal/raw/experimental/catalogs/jack");
-var WILDFIRE = require("binding/jack", "github.com/cadorn/wildfire/raw/master/lib-js");
+var WILDFIRE = require("wildfire/binding/jack");
 
 var App = function(env) {
 
     WILDFIRE.target("http://pinf.org/cadorn.org/fireconsole").send(
-        "Message Data",
-        "Meta Data"
+        "Meta Data",
+        "Message Data"
     );
 
     return {
@@ -16,4 +15,4 @@ var App = function(env) {
     };
 };
 
-exports.app = WILDFIRE.Dispatcher(JACK.ContentLength(App));
+exports.app = require("jack").ContentLength(App);
