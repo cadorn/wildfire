@@ -58,12 +58,6 @@ Sending HTTP header messages:
     });
 
 
-Examples
---------
-
-  * [Narwhal](http://github.com/cadorn/wildfire/tree/master/packages/lib-js/examples/narwhal/)
-
-
 Testing
 -------
 

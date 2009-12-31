@@ -31,13 +31,13 @@ var API = function() {};
 API.prototype.send = function(data, meta) {
     var message = new MESSAGE.Message();
     message.setData(meta || "");
-    message.setMeta(data);    
+    message.setMeta(data);
     message.setReceiver(this.receiver);
     dispatcher.dispatch(message);
 };
 
 exports.target = function(receiver) {
     var api = new API();
-    api.receiver = receiver; 
+    api.receiver = receiver;
     return api;
 }

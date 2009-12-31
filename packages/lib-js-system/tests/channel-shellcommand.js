@@ -29,13 +29,13 @@ exports.testScript = function() {
     channel.addReceiver(receiver);
     
     // run script
-        
+
     var command = "narwhal " + FILE.Path(module.path).join("../../examples/narwhal/script.js").canonical().valueOf();
     
     var process = OS.popen(command);
     var result = process.communicate();
     if (result.status !== 0) {
-        throw new Error("Error running: " + command);
+        throw new Error("Error running: " + command + " : " + result.stdout.read());
     }
     
     var stdout = UTIL.trim(result.stdout.read());
@@ -82,7 +82,7 @@ exports.testInline = function() {
     // run inline
 
     // --- in the parent context
-    var WILDFIRE = require("binding/narwhal", "github.com/cadorn/wildfire/raw/master/lib-js");
+    var WILDFIRE = require("wildfire/binding/narwhal");
     
     WILDFIRE.setChannel(channel);
     

@@ -1,13 +1,15 @@
 
+const WILDFIRE_UID = "github.com/cadorn/wildfire/zipball/master/packages/lib-js";
+
 var SYSTEM = require("system");
-var CHANNEL = require("../channel-shellcommand");
-var DISPATCHER = require("../dispatcher");
-var MESSAGE = require("../message");
+var CHANNEL = require("channel-shellcommand", WILDFIRE_UID);
+var DISPATCHER = require("dispatcher", WILDFIRE_UID);
+var MESSAGE = require("message", WILDFIRE_UID);
 
 var channel = CHANNEL.ShellCommandChannel();
 var dispatcher = DISPATCHER.Dispatcher();
 dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
-dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/binding/narwhal.js');
+dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js-system/lib/wildfire/binding/narwhal.js');
 
 function init() {
     dispatcher.setChannel(channel);
@@ -39,14 +41,14 @@ var API = function() {};
 API.prototype.send = function(data, meta) {
     var message = new MESSAGE.Message();
     message.setData(meta || "");
-    message.setMeta(data);    
+    message.setMeta(data);
     message.setReceiver(this.receiver);
     dispatcher.dispatch(message);
 };
 
 exports.target = function(receiver) {
     var api = new API();
-    api.receiver = receiver; 
+    api.receiver = receiver;
     return api;
 }
 

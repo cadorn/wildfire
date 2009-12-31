@@ -8,6 +8,7 @@ platform specific bindings available as system modules.
 Examples
 --------
 
+  * [Narwhal](http://github.com/cadorn/wildfire/tree/master/packages/lib-js-system/examples/narwhal/)
   * [Jack](http://github.com/cadorn/wildfire/tree/master/packages/lib-js-system/examples/jack/)
 
 
