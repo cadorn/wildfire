@@ -11,6 +11,13 @@ Examples
   * [Narwhal](http://github.com/cadorn/wildfire/tree/master/packages/lib-js-system/examples/narwhal/)
   * [Jack](http://github.com/cadorn/wildfire/tree/master/packages/lib-js-system/examples/jack/)
 
+Integrations
+------------
+
+  * [jack](http://github.com/cadorn/jack) - *jackup --wildfire*
+  * [jack-servlet](http://github.com/cadorn/jack-servlet)
+
+
 
 License
 =======
