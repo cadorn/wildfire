@@ -22,6 +22,10 @@ exports.setChannel = function(obj) {
     init();
 }
 
+exports.getChannel = function() {
+    return channel;
+}
+
 exports.flush = function() {
     var buffer = {};
     channel.flush({

@@ -3,6 +3,7 @@ function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 
 
 var PROTOCOL = require("./protocol");
+var TRANSPORT = require("./transport");
 
 
 var Channel = exports.Channel = function () {
@@ -16,18 +17,22 @@ Channel.prototype.__construct = function(message) {
         "messagePartMaxLength": 5000
     }
     this.outgoingQueue = [];
+    
+    this.addReceiver(TRANSPORT.newReceiver(this));
 }
 
-Channel.prototype.enqueueOutgoing = function(message) {
-    // If a receiver with a matching ID is present on the channel we don't
-    // enqueue the message if receiver.onMessageReceived returns FALSE.
-    var enqueue = true;
-    for( var i=0 ; i<this.receivers.length ; i++ ) {
-        if(this.receivers[i].getId()==message.getReceiver()) {
-            if(!this.receivers[i].onMessageReceived(null, message)) enqueue = false;
+Channel.prototype.enqueueOutgoing = function(message, bypassReceivers) {
+    if(!bypassReceivers) {
+        // If a receiver with a matching ID is present on the channel we don't
+        // enqueue the message if receiver.onMessageReceived returns FALSE.
+        var enqueue = true;
+        for( var i=0 ; i<this.receivers.length ; i++ ) {
+            if(this.receivers[i].getId()==message.getReceiver()) {
+                if(!this.receivers[i].onMessageReceived(null, message)) enqueue = false;
+            }
         }
+        if(!enqueue) return true;
     }
-    if(!enqueue) return true;
     this.outgoingQueue.push(this.encode(message));
     return true;
 }
@@ -44,7 +49,7 @@ Channel.prototype.setMessagePartMaxLength = function(length) {
     this.options.messagePartMaxLength = length;
 }
 
-Channel.prototype.flush = function(applicator) {
+Channel.prototype.flush = function(applicator, bypassTransport) {
     var messages = this.getOutgoing();
     if(messages.length==0) {
         return 0;
@@ -55,11 +60,15 @@ Channel.prototype.flush = function(applicator) {
         "applicator": applicator,
         "HEADER_PREFIX": self.HEADER_PREFIX
     };
-            
+
+    if(this.transport && !bypassTransport) {
+        util.applicator = this.transport.newApplicator(applicator);
+    }
+
     for( var i=0 ; i<messages.length ; i++ ) {
         var headers = messages[i];
-        for( var j=0 ; j<headers.length ; j++ ) {            
-            applicator.setMessagePart(
+        for( var j=0 ; j<headers.length ; j++ ) {
+            util.applicator.setMessagePart(
                 PROTOCOL.factory(headers[j][0]).encodeKey(util, headers[j][1], headers[j][2]),
                 headers[j][3]
             );
@@ -67,6 +76,10 @@ Channel.prototype.flush = function(applicator) {
     }
 
     this.clearOutgoing();
+
+    if(util.applicator.flush) {
+        util.applicator.flush(this);
+    }
 }
 
 Channel.prototype.setMessagePart = function(key, value) {
@@ -172,6 +185,7 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         }
         var headers = [];
         var lines = text.split("\n");
+        
         var expression = new RegExp("^("+self.HEADER_PREFIX+"[^:]*): (.*)$", "i");
         var m;
         for( var i=0 ; i<lines.length ; i++ ) {
@@ -184,5 +198,9 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         }
         return headers;
     }
+}
+
+Channel.prototype.setTransport = function(transport) {
+    this.transport = transport;
 }
 

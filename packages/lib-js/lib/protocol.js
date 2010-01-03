@@ -173,6 +173,11 @@ protocols["__TEST__"] = function(uri) {
                 if (part = parts[i]) {
         
                     msg = "";
+
+                    // escape backslashes
+                    // NOTE: This should probably be done during JSON encoding to ensure we do not double-escape
+                    //       with different encoders, but not sure how different encoders behave yet.
+                    part = part.replace(/\\/g, "\\\\");
         
                     if (parts.length>2) {
                         msg = ((i==0)?data.length:'') +
@@ -181,7 +186,7 @@ protocols["__TEST__"] = function(uri) {
                     } else {
                         msg = part.length + '|' + part + '|';
                     }
-        
+
                     headers.push([
                         protocol_id,
                         receiver_id,

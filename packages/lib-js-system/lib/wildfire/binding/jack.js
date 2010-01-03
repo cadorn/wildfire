@@ -11,7 +11,20 @@ var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
 var dispatcher = DISPATCHER.Dispatcher();
 dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
 dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js-system/lib/wildfire/binding/jack.js');
-dispatcher.setChannel(channel);
+
+
+function init() {
+    dispatcher.setChannel(channel);
+}
+
+exports.setChannel = function(obj) {
+    channel = obj;
+    init();
+}
+
+exports.getChannel = function() {
+    return channel;
+}
 
 exports.Dispatcher = function(app) {
     return function(env) {
@@ -47,3 +60,17 @@ exports.target = function(receiver) {
 exports.newMessage = function() {
     return new MESSAGE.Message(dispatcher);
 }
+
+exports.formatResponse = function(options, data) {
+    data = data || "";
+    return {
+        status: 200,
+        headers: {
+            "Content-Type": options.contentType,
+            "Content-Length": String(data.length)
+        },
+        body: [data]
+    }
+}
+
+init();
