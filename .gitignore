@@ -3,3 +3,4 @@
 *.local.*
 /using/
 /build/
+/.pinf-workspace.json
