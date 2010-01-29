@@ -1,4 +1,11 @@
 {
+    "uid": "http://registry.pinf.org/cadorn.org/github/wildfire/packages/lib-php/",
     "name": "lib-php",
-    "uid": "http://pinf.org/cadorn.org/wildfire/packages/lib-php"
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git://github.com/cadorn/wildfire.git",
+            "path": "packages/lib-php"
+        }
+    ]
 }

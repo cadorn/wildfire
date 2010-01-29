@@ -1,20 +1,10 @@
 {
+    "uid": "http://registry.pinf.org/cadorn.org/github/wildfire/",
     "name": "wildfire",
-    "dependencies": [
-        "narwhal"
-    ],
-    "using": {
-        "lib-js-deprecated": {
-            "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
-            "name": "lib-js-deprecated"
-        },
-        "lib-php": {
-            "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
-            "name": "lib-php"
-        },
-        "lib-js": {
-            "catalog": "http://github.com/cadorn/wildfire/raw/master/catalog.json",
-            "name": "lib-js"
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git://github.com/cadorn/wildfire.git"
         }
-    }
+    ]
 }

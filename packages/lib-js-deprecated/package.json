@@ -1,4 +1,11 @@
 {
+    "uid": "http://registry.pinf.org/cadorn.org/github/wildfire/packages/lib-js-deprecated/",
     "name": "lib-js-deprecated",
-    "type": "using"
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git://github.com/cadorn/wildfire.git",
+            "path": "packages/lib-js-deprecated"
+        }
+    ]
 }

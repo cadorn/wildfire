@@ -1,3 +1,11 @@
 {
-    "name": "lib-js"
+    "uid": "http://registry.pinf.org/cadorn.org/github/wildfire/packages/lib-js/",
+    "name": "lib-js",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git://github.com/cadorn/wildfire.git",
+            "path": "packages/lib-js"
+        }
+    ]
 }
