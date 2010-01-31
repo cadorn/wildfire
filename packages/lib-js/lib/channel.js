@@ -104,7 +104,7 @@ Channel.prototype.addReceiver = function(receiver) {
 
 Channel.prototype.parseReceived = function(rawHeaders, context) {
     var self = this;
-    
+
     if(typeof rawHeaders != "object") {
         rawHeaders = text_header_to_object(rawHeaders);
     }

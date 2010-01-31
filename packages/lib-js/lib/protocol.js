@@ -6,6 +6,7 @@ function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 
 
 var MESSAGE = require("./message");
+var JSON = require("json");
 
 
 var instances = {};
@@ -20,19 +21,11 @@ exports.factory = function(uri) {
     }
     return null;
 }
+
+
    
 protocols["http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1"] = 
 protocols["__TEST__"] = function(uri) {
-
-    function chunk_split(value, length) {
-        var parts = [];
-        var part;
-        while( (part = value.substr(0, length)) && part.length > 0 ) {
-            parts.push(part);
-            value = value.substr(length);
-        }
-        return parts;
-    }
 
     return {
         parse: function(buffers, receivers, senders, messages, key, value) {
@@ -273,4 +266,221 @@ protocols["__TEST__"] = function(uri) {
         }        
     };
 };
+
+
+
+protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) {
+
+    return {
+        parse: function(buffers, receivers, senders, messages, key, value) {
+
+            var parts = key.split('-');
+            // parts[0] - receiver
+            // parts[1] - sender
+            // parts[2] - message id/index
+
+            if(parts[0]=='index') {
+                // ignore the index header
+                return;
+            } else
+            if(parts[0]=='structure') {
+                if(value=="http://meta.firephp.org/Wildfire/Structure/FirePHP/FirebugConsole/0.1") {
+                    value = "http://pinf.org/cadorn.org/fireconsole/meta/Receiver/Console/0.1";
+                } else
+                if(value=="http://meta.firephp.org/Wildfire/Structure/FirePHP/Dump/0.1") {
+                    value = "http://pinf.org/cadorn.org/fireconsole/meta/Receiver/NetServer/0.1"
+                }
+                receivers[parts[1]] = value;
+                return;
+            } else
+            if(parts[0]=='plugin') {
+                senders[parts[1] + ':' + "1"] = value;
+                return;
+            }
+            
+            // 62|...|\
+            var m = value.match(/^(\d*)?\|(.*)\|(\\)?$/);
+            if(!m) {
+                throw new Error("Error parsing message: " + value);
+            }
+
+            // length present and message matches length - complete message
+            if(m[1] && m[1]==m[2].length && !m[3]) {
+                enqueueMessage(parts[2], parts[0], parts[1], m[2]);
+            } else
+            // message continuation present - message part
+            if( m[3] ) {
+                enqueueBuffer(parts[2], parts[0], parts[1], m[2], (m[1])?'first':'part', m[1]);
+            } else
+            // no length and no message continuation - last message part
+            if( !m[1] && !m[3] ) {
+                enqueueBuffer(parts[2], parts[0], parts[1], m[2], 'last');
+            } else {
+                throw new Error('Error parsing message: ' + value);
+            }
+            
+            // this supports message parts arriving in any order as fast as possible
+            function enqueueBuffer(index, receiver, sender, value, position, length) {
+                if(!buffers[receiver]) {
+                    buffers[receiver] = {"firsts": 0, "lasts": 0, "messages": []};
+                }
+                if(position=="first") buffers[receiver].firsts += 1;
+                else if(position=="last") buffers[receiver].lasts += 1;
+                buffers[receiver].messages.push([index, value, position, length]);
+                
+                // if we have a mathching number of first and last parts we assume we have
+                // a complete message so we try and join it
+                if(buffers[receiver].firsts>0 && buffers[receiver].firsts==buffers[receiver].lasts) {
+                    // first we sort all messages
+                    buffers[receiver].messages.sort(
+                        function (a, b) {
+                            return a[0] - b[0];
+                        }
+                    );
+                    // find the first "first" part and start collecting parts
+                    // until "last" is found
+                    var startIndex = null;
+                    var buffer = null;
+                    for( i=0 ; i<buffers[receiver].messages.length ; i++ ) {
+                        if(buffers[receiver].messages[i][2]=="first") {
+                            startIndex = i;
+                            buffer = buffers[receiver].messages[i][1];
+                        } else
+                        if(startIndex!==null) {
+                            buffer += buffers[receiver].messages[i][1];
+                            if(buffers[receiver].messages[i][2]=="last") {
+                                // if our buffer matches the message length
+                                // we have a complete message
+                                if(buffer.length==buffers[receiver].messages[startIndex][3]) {
+                                    // message is complete
+                                    enqueueMessage(buffers[receiver].messages[startIndex][0], receiver, sender, buffer);
+                                    buffers[receiver].messages.splice(startIndex, i-startIndex);
+                                    buffers[receiver].firsts -= 1;
+                                    buffers[receiver].lasts -= 1;
+                                    if(buffers[receiver].messages.length==0) delete buffers[receiver];
+                                    startIndex = null;
+                                    buffer = null;
+                                } else {
+                                    // message is not complete
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            function enqueueMessage(index, receiver, sender, value) {
+
+                if(!messages[receiver]) {
+                    messages[receiver] = [];
+                }
+
+                var parts = JSON.decode(value),
+                    meta = {
+                        "fc.msg.preprocessor": "FirePHPCoreCompatibility"
+                    },
+                    data = parts[1];
+
+                if(parts[0]) {
+                    for( var name in parts[0] ) {
+                        if(name=="Type") {
+                            switch(parts[0][name]) {
+                                case "LOG":
+                                    meta["fc.msg.priority"] = "log";
+                                    break;
+                                case "INFO":
+                                    meta["fc.msg.priority"] = "info";
+                                    break;
+                                case "WARN":
+                                    meta["fc.msg.priority"] = "warn";
+                                    break;
+                                case "ERROR":
+                                    meta["fc.msg.priority"] = "error";
+                                    break;
+                                case "EXCEPTION":
+                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#exception";
+                                    break;
+                                case "TRACE":
+                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#trace";
+                                    break;
+                                case "TABLE":
+                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#table";
+                                    break;
+                                case "GROUP_START":
+                                    meta["fc.group.start"] = true;
+                                    break;
+                                case "GROUP_END":
+                                    meta["fc.group.end"] = true;
+                                    break;
+                                default:
+                                    throw new Error("Log type '" + parts[0][name] + "' not implemented");
+                                    break;
+                            }
+                        } else
+                        if(name=="Label") {
+                            meta["fc.msg.label"] = parts[0][name];
+                        } else
+                        if(name=="File") {
+                            meta["fc.msg.file"] = parts[0][name];
+                        } else
+                        if(name=="Line") {
+                            meta["fc.msg.line"] = parts[0][name];
+                        } else
+                        if(name=="Collapsed") {
+                            meta["fc.group.collapsed"] = parts[0][name];
+                        } else
+                        if(name=="Color") {
+                            meta["fc.group.color"] = parts[0][name];
+                        }
+                    }
+                }
+                
+                if(meta["fc.group.start"]) {
+                    data = meta["fc.msg.label"];
+                    delete meta["fc.msg.label"];
+                } else
+                if(meta["fc.tpl.id"] == "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#table") {
+                    if(meta["fc.msg.label"]) {
+                        data = [meta["fc.msg.label"], data];
+                        delete meta["fc.msg.label"];
+                    }
+                } else
+                if(meta["fc.tpl.id"] == "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#trace") {
+                    delete meta["fc.msg.label"];
+                }
+
+
+                var message = MESSAGE.Message();
+                message.setReceiver(receiver);
+                message.setSender(sender);
+                message.setMeta(JSON.encode(meta));
+                message.setData(data);
+
+                messages[receiver].push([index, message]);
+            }
+        },
+        
+        encodeMessage: function(options, message) {
+            throw new Error("Not implemented!");
+        },
+        
+        encodeKey: function(util, receiverId, senderId) {
+            throw new Error("Not implemented!");
+        }        
+    };
+};
+
+
+
+
+function chunk_split(value, length) {
+    var parts = [];
+    var part;
+    while( (part = value.substr(0, length)) && part.length > 0 ) {
+        parts.push(part);
+        value = value.substr(length);
+    }
+    return parts;
+}
+
      
