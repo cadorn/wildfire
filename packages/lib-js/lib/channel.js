@@ -122,6 +122,14 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
 
     // deliver the messages to the appropriate receivers
     for( var receiverKey in messages ) {
+
+        // sort messages by index
+        messages[receiverKey].sort(function(a, b) {
+            if(a[0]>b[0]) return 1;
+            if(a[0]<b[0]) return -1;
+            return 0;
+        });
+
         // determine receiver
         var receiverId = receivers[receiverKey];
         // fetch receivers that support ID
