@@ -7,7 +7,7 @@ function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 
 var MESSAGE = require("./message");
 var JSON = require("json");
-
+var UTIL = require("util");
 
 var instances = {};
 var protocols = {};
@@ -285,10 +285,11 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
             } else
             if(parts[0]=='structure') {
                 if(value=="http://meta.firephp.org/Wildfire/Structure/FirePHP/FirebugConsole/0.1") {
-                    value = "http://pinf.org/cadorn.org/fireconsole/meta/Receiver/Console/0.1";
+                    value = "http://registry.pinf.org/cadorn.org/github/fireconsole/@meta/receiver/console/0.1.0";
                 } else
                 if(value=="http://meta.firephp.org/Wildfire/Structure/FirePHP/Dump/0.1") {
-                    value = "http://pinf.org/cadorn.org/fireconsole/meta/Receiver/NetServer/0.1"
+                    value = "http://registry.pinf.org/cadorn.org/github/fireconsole/@meta/receiver/console/0.1.0";
+//                    value = "http://pinf.org/cadorn.org/fireconsole/meta/Receiver/NetServer/0.1"
                 }
                 receivers[parts[1]] = value;
                 return;
@@ -379,9 +380,14 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                     meta = {
                         "fc.msg.preprocessor": "FirePHPCoreCompatibility"
                     },
+                    data;
+                
+                // console
+                if(UTIL.isArrayLike(parts) && parts.length==2 &&
+                    (typeof parts[0] == "object") && UTIL.has(parts[0], "Type")) {
+                    
                     data = parts[1];
 
-                if(parts[0]) {
                     for( var name in parts[0] ) {
                         if(name=="Type") {
                             switch(parts[0][name]) {
@@ -398,13 +404,13 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                                     meta["fc.msg.priority"] = "error";
                                     break;
                                 case "EXCEPTION":
-                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#exception";
+                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#legacy/exception";
                                     break;
                                 case "TRACE":
-                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#trace";
+                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#legacy/trace";
                                     break;
                                 case "TABLE":
-                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#table";
+                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#legacy/table";
                                     break;
                                 case "GROUP_START":
                                     meta["fc.group.start"] = true;
@@ -432,7 +438,12 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                         if(name=="Color") {
                             meta["fc.group.color"] = parts[0][name];
                         }
-                    }
+                    }                    
+                } else
+                // dump
+                {
+                    data = parts;
+                    meta["fc.msg.label"] = "Dump";
                 }
                 
                 if(meta["fc.group.start"]) {
