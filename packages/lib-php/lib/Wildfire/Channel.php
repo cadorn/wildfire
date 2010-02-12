@@ -9,6 +9,7 @@ abstract class Wildfire_Channel
     private $receivers = array();
     protected $options = array();
     private $outgoingQueue = array();
+    protected $_flushListeners = array();
     
     public function __construct()
     {
@@ -30,6 +31,15 @@ abstract class Wildfire_Channel
     public function setMessagePartMaxLength($length)
     {
         $this->options['messagePartMaxLength'] = $length;
+    }
+
+    public function addFlushListener(Wildfire_Channel_FlushListener $listener) {
+        foreach( $this->_flushListeners as $obj ) {
+            if($obj===$listener) {
+                return;
+            }
+        }
+        $this->_flushListeners[] = $listener;
     }
 
     public function flush()
@@ -54,6 +64,11 @@ abstract class Wildfire_Channel
                 );
             }
         }
+        
+        foreach( $this->_flushListeners as $listener ) {
+            $listener->channelFlushed($this);
+        }
+        
         return sizeof($messages);
     }
 

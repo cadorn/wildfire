@@ -97,6 +97,10 @@ Channel.prototype.encode = function(message) {
     return PROTOCOL.factory(protocol_id).encodeMessage(this.options, message);
 }
 
+Channel.prototype.setNoReceiverCallback = function(callback) {
+    this.noReceiverCallback = callback;
+}
+
 Channel.prototype.addReceiver = function(receiver) {
     this.receivers.push(receiver);
 }
@@ -160,6 +164,9 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
                     targetReceivers[k].onMessageGroupEnd(context);
                 }
             }
+        } else
+        if(this.noReceiverCallback) {
+            this.noReceiverCallback(receiverId);
         }
     }
     
