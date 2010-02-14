@@ -133,8 +133,8 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
 
         // sort messages by index
         messages[receiverKey].sort(function(a, b) {
-            if(a[0]>b[0]) return 1;
-            if(a[0]<b[0]) return -1;
+            if(parseInt(a[0])>parseInt(b[0])) return 1;
+            if(parseInt(a[0])<parseInt(b[0])) return -1;
             return 0;
         });
 
