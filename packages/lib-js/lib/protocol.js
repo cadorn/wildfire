@@ -1,8 +1,5 @@
 
-
-
 function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
-
 
 
 var MESSAGE = require("./message");
@@ -23,8 +20,7 @@ exports.factory = function(uri) {
 }
 
 
-   
-protocols["http://registry.pinf.org/cadorn.org/github/wildfire/@meta/protocol/component/0.1.0"] = 
+protocols["http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0"] = 
 protocols["__TEST__"] = function(uri) {
 
     return {
@@ -268,7 +264,7 @@ protocols["__TEST__"] = function(uri) {
 };
 
 
-// @see http://registry.pinf.org/cadorn.org/github/wildfire/@meta/protocol/json-stream/0.2.0
+// @see http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/json-stream/0.2.0
 protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) {
 
     return {

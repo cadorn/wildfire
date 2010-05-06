@@ -9,8 +9,8 @@ For a high-level brainstorm of wildfire see: [http://www.wildfirehq.org/](http:/
 Protocols
 ---------
 
-  * [http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1](http://github.com/cadorn/wildfire/blob/master/meta/Protocol/Component/0.1.md)
-  * [http://pinf.org/cadorn.org/wildfire/meta/Protocol/JsonStream/0.2](http://github.com/cadorn/wildfire/blob/master/meta/Protocol/JsonStream/0.2.md) (**DEPRECATED**)
+  * [http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0](http://github.com/cadorn/wildfire/blob/master/meta/protocol/component/0.1.0.md)
+  * [http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/json-stream/0.2.0](http://github.com/cadorn/wildfire/blob/master/meta/protocol/json-stream/0.2.0.md) (**DEPRECATED**)
 
 Libraries
 ---------

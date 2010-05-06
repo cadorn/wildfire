@@ -1,5 +1,14 @@
 
+function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
+
 var ASSERT = require("assert");
+var FILE = require("file");
+
+var PACKAGES = require("packages");
+PACKAGES.load([
+    system.prefix,
+    FILE.Path(module.path).dirname().dirname().valueOf()
+]);
 
 var HTTP_HEADER_CHANNEL = require("channel-httpheader");
 var DISPATCHER = require("dispatcher");
@@ -16,7 +25,7 @@ exports.testSmall = function() {
     var message = MESSAGE.Message();
     message.setData("Hello World");
     message.setMeta('{"line":10}');
-    message.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    message.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
     message.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
     message.setReceiver('http://pinf.org/cadorn.org/fireconsole');
     
@@ -29,7 +38,7 @@ exports.testSmall = function() {
     ASSERT.deepEqual(
         flusher.getMessageParts(),
         [
-            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ['x-wf-protocol-1', 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0'],
             ['x-wf-1-index', '2'],
             ['x-wf-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
             ['x-wf-1-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
@@ -47,7 +56,7 @@ exports.testLarge = function() {
     
     var dispatcher = DISPATCHER.Dispatcher();
     dispatcher.setChannel(channel);
-    dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    dispatcher.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
     dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
     dispatcher.setReceiver('http://pinf.org/cadorn.org/fireconsole');
     
@@ -67,7 +76,7 @@ exports.testLarge = function() {
     ASSERT.deepEqual(
         flusher.getMessageParts(),
         [
-            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ['x-wf-protocol-1', 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0'],
             ["x-wf-1-index", "3"],
             ['x-wf-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
             ['x-wf-1-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
@@ -88,7 +97,7 @@ exports.testMultipleProtocols = function() {
     var message = MESSAGE.Message();
     message.setData("Hello World");
     message.setMeta('{"line":10}');
-    message.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    message.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
     message.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
     message.setReceiver('http://pinf.org/cadorn.org/fireconsole');
 
@@ -104,13 +113,13 @@ exports.testMultipleProtocols = function() {
     ASSERT.deepEqual(
         flusher.getMessageParts(),
         [
-            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
-            ['x-wf-1-index', '1'],
+            ['x-wf-protocol-1', 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0'],
+            ['x-wf-1-index', 1],
             ['x-wf-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
             ['x-wf-1-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
             ['x-wf-1-1-1-1', '23|{"line":10}|Hello World|'],
             ['x-wf-protocol-2', '__TEST__'],
-            ['x-wf-2-index', '1'],
+            ['x-wf-2-index', 1],
             ['x-wf-2-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
             ['x-wf-2-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
             ['x-wf-2-1-1-1', '23|{"line":10}|Hello World|']
@@ -128,7 +137,7 @@ exports.testMultipleSenders = function() {
     var message = MESSAGE.Message();
     message.setData("Hello World");
     message.setMeta('{"line":10}');
-    message.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    message.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
     message.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
     message.setReceiver('http://pinf.org/cadorn.org/fireconsole');
 
@@ -144,7 +153,7 @@ exports.testMultipleSenders = function() {
     ASSERT.deepEqual(
         flusher.getMessageParts(),
         [
-            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ['x-wf-protocol-1', 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0'],
             ['x-wf-1-index', '2'],
             ['x-wf-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
             ['x-wf-1-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],
@@ -165,7 +174,7 @@ exports.testMultipleReceivers = function() {
     var message = MESSAGE.Message();
     message.setData("Hello World");
     message.setMeta('{"line":10}');
-    message.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    message.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
     message.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
     message.setReceiver('http://pinf.org/cadorn.org/fireconsole');
 
@@ -181,7 +190,7 @@ exports.testMultipleReceivers = function() {
     ASSERT.deepEqual(
         flusher.getMessageParts(),
         [
-            ['x-wf-protocol-1', 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1'],
+            ['x-wf-protocol-1', 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0'],
             ['x-wf-1-index', '2'],
             ['x-wf-1-1-receiver', 'http://pinf.org/cadorn.org/fireconsole'],
             ['x-wf-1-1-1-sender', 'http://pinf.org/cadorn.org/wildfire/packages/lib-js'],

@@ -30,7 +30,7 @@ Sending HTTP header messages:
 Testing
 -------
 
-    narwhal tests/all-tests.js
+    phpunit tests
 
 
 

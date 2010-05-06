@@ -20,7 +20,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
         $message = new Wildfire_Message();
         $message->setData('Hello World');
         $message->setMeta('{"line":10}');
-        $message->setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+        $message->setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
         $message->setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-php');
         $message->setReceiver('http://pinf.org/cadorn.org/fireconsole');        
         
@@ -31,7 +31,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             array(
-                'x-wf-protocol-1' => 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1',
+                'x-wf-protocol-1' => 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0',
                 'x-wf-1-index' => '2',
                 'x-wf-1-1-receiver' => 'http://pinf.org/cadorn.org/fireconsole',
                 'x-wf-1-1-1-sender' => 'http://pinf.org/cadorn.org/wildfire/packages/lib-php',
@@ -49,7 +49,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
 
         $dispatcher = new Wildfire_Dispatcher();
         $dispatcher->setChannel($channel);
-        $dispatcher->setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+        $dispatcher->setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
         $dispatcher->setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-php');
         $dispatcher->setReceiver('http://pinf.org/cadorn.org/fireconsole');        
         
@@ -68,7 +68,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             array(
-                'x-wf-protocol-1' => 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1',
+                'x-wf-protocol-1' => 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0',
                 'x-wf-1-index' => '6',
                 'x-wf-1-1-receiver' => 'http://pinf.org/cadorn.org/fireconsole',
                 'x-wf-1-1-1-sender' => 'http://pinf.org/cadorn.org/wildfire/packages/lib-php',
@@ -93,7 +93,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
         $message = new Wildfire_Message();
         $message->setData('Hello World');
         $message->setMeta('{"line":10}');
-        $message->setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+        $message->setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
         $message->setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-php');
         $message->setReceiver('http://pinf.org/cadorn.org/fireconsole');        
         
@@ -107,7 +107,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             array(
-                'x-wf-protocol-1' => 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1',
+                'x-wf-protocol-1' => 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0',
                 'x-wf-1-index' => '1',
                 'x-wf-1-1-receiver' => 'http://pinf.org/cadorn.org/fireconsole',
                 'x-wf-1-1-1-sender' => 'http://pinf.org/cadorn.org/wildfire/packages/lib-php',
@@ -132,7 +132,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
         $message = new Wildfire_Message();
         $message->setData('Hello World');
         $message->setMeta('{"line":10}');
-        $message->setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+        $message->setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
         $message->setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-php');
         $message->setReceiver('http://pinf.org/cadorn.org/fireconsole');        
         
@@ -146,7 +146,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             array(
-                'x-wf-protocol-1' => 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1',
+                'x-wf-protocol-1' => 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0',
                 'x-wf-1-index' => '2',
                 'x-wf-1-1-receiver' => 'http://pinf.org/cadorn.org/fireconsole',
                 'x-wf-1-1-1-sender' => 'http://pinf.org/cadorn.org/wildfire/packages/lib-php',
@@ -168,7 +168,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
         $message = new Wildfire_Message();
         $message->setData('Hello World');
         $message->setMeta('{"line":10}');
-        $message->setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+        $message->setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
         $message->setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-php');
         $message->setReceiver('http://pinf.org/cadorn.org/fireconsole');        
         
@@ -182,7 +182,7 @@ class Wildfire_MessageTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             array(
-                'x-wf-protocol-1' => 'http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1',
+                'x-wf-protocol-1' => 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0',
                 'x-wf-1-index' => '2',
                 'x-wf-1-1-receiver' => 'http://pinf.org/cadorn.org/fireconsole',
                 'x-wf-1-1-1-sender' => 'http://pinf.org/cadorn.org/wildfire/packages/lib-php',

@@ -9,7 +9,7 @@ class Wildfire_Protocol_Component extends Wildfire_Protocol
     
     public function encodeMessage($options, $message)
     {
-        if($this->uri=="http://registry.pinf.org/cadorn.org/github/wildfire/@meta/protocol/component/0.1.0" ||
+        if($this->uri=="http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0" ||
            $this->uri=="__TEST__") {
 
             $protocol_id = $message->getProtocol();
@@ -65,7 +65,7 @@ class Wildfire_Protocol_Component extends Wildfire_Protocol
     
     public function encodeKey($util, $receiverId, $senderId)
     {
-        if($this->uri=="http://registry.pinf.org/cadorn.org/github/wildfire/@meta/protocol/component/0.1.0" ||
+        if($this->uri=="http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0" ||
            $this->uri=="__TEST__") {
         
             if(!isset($util["protocols"])) $util["protocols"] = array();

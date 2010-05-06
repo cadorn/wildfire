@@ -9,7 +9,7 @@ var MESSAGE = require("message", WILDFIRE_UID);
 
 var channel = HTTP_HEADER_CHANNEL.HttpHeaderChannel();
 var dispatcher = DISPATCHER.Dispatcher();
-dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+dispatcher.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
 dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js-system/lib/wildfire/binding/jack.js');
 
 

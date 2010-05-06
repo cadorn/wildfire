@@ -1,10 +1,8 @@
 
 function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 
-
 var PROTOCOL = require("./protocol");
 var TRANSPORT = require("./transport");
-
 
 var Channel = exports.Channel = function () {
     if (!(this instanceof exports.Channel))

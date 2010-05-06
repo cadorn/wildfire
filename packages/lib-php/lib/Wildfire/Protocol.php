@@ -11,7 +11,7 @@ abstract class Wildfire_Protocol
         }
         $class = null;
         switch($uri) {
-            case 'http://registry.pinf.org/cadorn.org/github/wildfire/@meta/protocol/component/0.1.0':
+            case 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0':
             case '__TEST__':
             	$class = 'Wildfire_Protocol_Component';
                 break;

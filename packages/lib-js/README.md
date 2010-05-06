@@ -37,7 +37,7 @@ Sending HTTP header messages:
     
     var dispatcher = WILDFIRE.Dispatcher();
     dispatcher.setChannel(channel);
-    dispatcher.setProtocol('http://pinf.org/cadorn.org/wildfire/meta/Protocol/Component/0.1');
+    dispatcher.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/Protocol/Component/0.1.0');
     dispatcher.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js');
     dispatcher.setReceiver('http://pinf.org/cadorn.org/fireconsole');
     
@@ -61,7 +61,7 @@ Sending HTTP header messages:
 Testing
 -------
 
-    phpunit tests
+    narwhal tests/all-tests.js
 
 
 
