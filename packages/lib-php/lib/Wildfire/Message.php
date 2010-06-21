@@ -24,11 +24,13 @@ class Wildfire_Message
     
     public function setMeta($meta)
     {
-        if(!is_string($meta)) {
-            throw new Exception('$meta is not a string');
-        }
-        if(json_decode($meta)===null) {
-            throw new Exception('$meta is not a JSON string');
+        if($meta!==false && $meta!==null) {
+            if(!is_string($meta)) {
+                throw new Exception('$meta is not a string');
+            }
+            if(json_decode($meta)===null) {
+                throw new Exception('$meta is not a JSON string');
+            }
         }
         $this->meta = $meta;
     }   

@@ -15,6 +15,9 @@ abstract class Wildfire_Protocol
             case '__TEST__':
             	$class = 'Wildfire_Protocol_Component';
                 break;
+            case 'http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/announce/0.1.0':
+                $class = 'Wildfire_Protocol_Announce';
+                break;
             default:
                 throw new Exception('Unknown protocol: ' . $uri);
                 break;
@@ -27,6 +30,7 @@ abstract class Wildfire_Protocol
         $this->uri = $uri;
     }
     
+    abstract public function parse(&$buffers, &$receivers, &$senders, &$messages, $key, $value);
     abstract public function encodeMessage($options, $message);
     abstract public function encodeKey($util, $receiverId, $senderId);
     

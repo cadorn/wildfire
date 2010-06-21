@@ -9,14 +9,19 @@ var Channel = exports.Channel = function () {
         return new exports.Channel();
 }
 
-Channel.prototype.__construct = function(message) {
+Channel.prototype.__construct = function(options) {
+    options = options || {};
     this.receivers = [];
     this.options = {
         "messagePartMaxLength": 5000
     }
     this.outgoingQueue = [];
     
-    this.addReceiver(TRANSPORT.newReceiver(this));
+    if(typeof options.enableTransport != "undefined" && options.enableTransport===false) {
+        // do not add transport
+    } else {
+        this.addReceiver(TRANSPORT.newReceiver(this));
+    }
 }
 
 Channel.prototype.enqueueOutgoing = function(message, bypassReceivers) {
@@ -48,11 +53,17 @@ Channel.prototype.setMessagePartMaxLength = function(length) {
 }
 
 Channel.prototype.flush = function(applicator, bypassTransport) {
+
+    // set request ID if not set
+    if(!applicator.getMessagePart("x-request-id")) {
+        applicator.setMessagePart("x-request-id", (new Date().getTime()) + "" + Math.floor(Math.random()*1000+1) );
+    }
+
     var messages = this.getOutgoing();
     if(messages.length==0) {
         return 0;
     }
-    
+
     var self = this;
     var util = {
         "applicator": applicator,
@@ -72,17 +83,23 @@ Channel.prototype.flush = function(applicator, bypassTransport) {
             );
         }
     }
+    
+    var count = messages.length;
 
     this.clearOutgoing();
 
     if(util.applicator.flush) {
         util.applicator.flush(this);
     }
+
+    return count;
 }
 
+// NOTE: I think this function is not needed and could probably be removed
 Channel.prototype.setMessagePart = function(key, value) {
 }
 
+// NOTE: I think this function is not needed and could probably be removed
 Channel.prototype.getMessagePart = function(key) {
     return null;
 }
@@ -106,6 +123,12 @@ Channel.prototype.addReceiver = function(receiver) {
 
 Channel.prototype.parseReceived = function(rawHeaders, context) {
     var self = this;
+
+    for( var i=0 ; i<this.receivers.length ; i++ ) {
+        if(this.receivers[i]["onChannelOpen"]) {
+            this.receivers[i].onChannelOpen(context);
+        }
+    }
 
     if(typeof rawHeaders != "object") {
         rawHeaders = text_header_to_object(rawHeaders);
@@ -151,7 +174,7 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         if(targetReceivers.length>0) {
             for( var j=0 ; j<messages[receiverKey].length ; j++ ) {
                 // re-write sender and receiver keys to IDs
-                messages[receiverKey][j][1].setSender(senders[messages[receiverKey][j][1].getSender()]);
+                messages[receiverKey][j][1].setSender(senders[receiverKey+":"+messages[receiverKey][j][1].getSender()]);
                 messages[receiverKey][j][1].setReceiver(receiverId);
                 for( var k=0 ; k<targetReceivers.length ; k++ ) {
                     targetReceivers[k].onMessageReceived(context, messages[receiverKey][j][1]);
@@ -165,6 +188,12 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         } else
         if(this.noReceiverCallback) {
             this.noReceiverCallback(receiverId);
+        }
+    }
+
+    for( var i=0 ; i<this.receivers.length ; i++ ) {
+        if(this.receivers[i]["onChannelClose"]) {
+            this.receivers[i].onChannelClose(context);
         }
     }
     

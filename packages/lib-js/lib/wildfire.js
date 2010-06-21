@@ -11,8 +11,8 @@ exports.Message = function() {
     return require("./message").Message();
 }
 
-exports.HttpHeaderChannel = function() {
-    return require("./channel-httpheader").HttpHeaderChannel();
+exports.HttpHeaderChannel = function(options) {
+    return require("./channel-httpheader").HttpHeaderChannel(options);
 }
 
 exports.ShellCommandChannel = function() {

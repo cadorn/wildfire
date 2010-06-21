@@ -6,6 +6,9 @@ require_once 'Wildfire/Protocol.php';
 class Wildfire_Protocol_Component extends Wildfire_Protocol
 {    
     const CHUMK_DELIM = '__<|CHUNK|>__';
+
+    public function parse(&$buffers, &$receivers, &$senders, &$messages, $key, $value) {
+    }
     
     public function encodeMessage($options, $message)
     {
@@ -32,8 +35,8 @@ class Wildfire_Protocol_Component extends Wildfire_Protocol
                 $meta = '';
             }
     
-            $data = str_replace('|', '\\|', $meta) . '|' . str_replace('|', '\\|', $message->getData());
-    
+            $data = str_replace('|', '&#124;', $meta) . '|' . str_replace('|', '&#124;', $message->getData());
+
             $parts = explode(self::CHUMK_DELIM, chunk_split($data, $options['messagePartMaxLength'], self::CHUMK_DELIM));
     
             for ($i=0 ; $i<count($parts) ; $i++) {

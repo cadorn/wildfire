@@ -3,7 +3,7 @@
 function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 
 
-const RECEIVER_ID = "http://registry.pinf.org/cadorn.org/wildfire/@meta/receiver/transport/0.1.0";
+const RECEIVER_ID = "http://registry.pinf.org/cadorn.org/wildfire/@meta/receiver/transport/0";
 
 var MD5 = require("md5");
 var STRUCT = require("struct");
@@ -78,7 +78,7 @@ Applicator.prototype.flush = function(channel) {
     
     // create a pointer message to be sent instead of the original messages
     var message = MESSAGE.Message();
-    message.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
+    message.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0');
     message.setSender('http://pinf.org/cadorn.org/wildfire/packages/lib-js/lib/transport.js');
     message.setReceiver(RECEIVER_ID);
     message.setData(JSON.encode({"url": this.transport.getUrl(key)}));

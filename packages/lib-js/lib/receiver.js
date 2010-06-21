@@ -14,6 +14,14 @@ Receiver.prototype.getId = function() {
     return this.id;
 }
 
+Receiver.prototype.onChannelOpen = function(context) {
+    this._dispatch("onChannelOpen", [context]);
+}
+
+Receiver.prototype.onChannelClose = function(context) {
+    this._dispatch("onChannelClose", [context]);
+}
+
 Receiver.prototype.onMessageGroupStart = function(context) {
     this._dispatch("onMessageGroupStart", [context]);
 }

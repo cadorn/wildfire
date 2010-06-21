@@ -1,16 +1,32 @@
 <?php
 
 require_once 'Wildfire/Protocol.php';
-
+require_once 'Wildfire/Transport.php';
 
 abstract class Wildfire_Channel
-{    
-
+{
+    private static $HEADER_PREFIX = "x-wf-";
+    
+    private $requestId = null;
+    
     private $receivers = array();
     protected $options = array();
     private $outgoingQueue = array();
     protected $_flushListeners = array();
     
+    protected $transport = null;
+
+
+    // protocol related
+    private $_parser_protocolBuffers = array();
+    // message related
+    private $_parser_buffers = array();
+    private $_parser_protocols = array();
+    private $_parser_receivers = array();
+    private $_parser_senders = array();
+    private $_parser_messages = array();
+
+
     public function __construct()
     {
         $this->options['messagePartMaxLength'] = 5000;
@@ -27,6 +43,9 @@ abstract class Wildfire_Channel
         return $this->outgoingQueue;
     }
 
+    public function clearOutgoing() {
+        return $this->outgoingQueue = array();
+    }
 
     public function setMessagePartMaxLength($length)
     {
@@ -42,8 +61,12 @@ abstract class Wildfire_Channel
         $this->_flushListeners[] = $listener;
     }
 
-    public function flush()
+    public function flush($bypassTransport=false)
     {
+        if($this->requestId) {
+            $this->setMessagePart('x-request-id', $this->requestId);
+        }
+
         $messages = $this->getOutgoing();
         if(!$messages) {
             return 0;
@@ -51,25 +74,38 @@ abstract class Wildfire_Channel
         
         $util = array(
             "applicator" => $this,
-            "HEADER_PREFIX" => "x-wf-"
+            "HEADER_PREFIX" => self::$HEADER_PREFIX
         );
+        
+        $applicator = $this;
+        if($this->transport && !$bypassTransport) {
+            $util['applicator'] = $this->transport;
+        }
                 
         // encode messages and write to headers        
         foreach( $messages as $message ) {
             $headers = $message;
             foreach( $headers as $header ) {
-                $this->setMessagePart(
+                $util['applicator']->setMessagePart(
                     Wildfire_Protocol::factory($header[0])->encodeKey($util, $header[1], $header[2]),
                     $header[3]
                 );
             }
         }
+
+        $count = sizeof($messages);
         
+        $this->clearOutgoing();
+        
+        if($this->transport && !$bypassTransport) {
+            $this->transport->flush($this);
+        }
+
         foreach( $this->_flushListeners as $listener ) {
             $listener->channelFlushed($this);
         }
-        
-        return sizeof($messages);
+
+        return $count;
     }
 
     private function encode(Wildfire_Message $message)
@@ -81,9 +117,108 @@ abstract class Wildfire_Channel
         return Wildfire_Protocol::factory($protocol_id)->encodeMessage($this->options, $message);
     }
 
+    public function addReceiver($receiver) {
+        $this->receivers[] = $receiver;
+    }
 
-    abstract public function setMessagePart($key, $value);
+    public function parseReceived($rawHeaders) {
+
+        // parse the raw headers into messages
+        foreach( $rawHeaders as $name => $value ) {
+            $this->_parseHeader(strtolower($name), $value);
+        }
+
+        // deliver the messages to the appropriate receivers
+        foreach( $this->_parser_messages as $receiverKey => $receiverMessages ) {
+
+            // sort messages by index
+/*            
+TODO: implement
+            messages[receiverKey].sort(function(a, b) {
+                if(parseInt(a[0])>parseInt(b[0])) return 1;
+                if(parseInt(a[0])<parseInt(b[0])) return -1;
+                return 0;
+            });
+*/    
+
+            // determine receiver
+            if($receiverKey=='*') {
+                $receiverId = '*';
+            } else {
+                $receiverId = $this->_parser_receivers[$receiverKey];
+            }
+
+            // fetch receivers that support ID
+            $targetReceivers = array();
+            for( $i=0 ; $i<count($this->receivers) ; $i++ ) {
+                if($receiverKey=='*' || $this->receivers[$i]->getId()==$receiverId) {
+
+                    $obj = $this->receivers[$i];
+                    if(method_exists($obj, "onMessageGroupStart")) {
+                        $obj->onMessageGroupStart();
+                    }
+                    $targetReceivers[] = $this->receivers[$i];
+                }
+            }
+            if(count($targetReceivers)>0) {
+                for( $j=0 ; $j<count($receiverMessages) ; $j++ ) {
+
+                    // re-write sender and receiver keys to IDs
+                    if(isset($this->_parser_senders[$receiverMessages[$j][1]->getSender()])) {
+                        $receiverMessages[$j][1]->setSender($this->_parser_senders[$receiverMessages[$j][1]->getSender()]);
+                    }
+                    $receiverMessages[$j][1]->setReceiver($receiverId);
+                    for( $k=0 ; $k<count($targetReceivers) ; $k++ ) {
+                        $targetReceivers[$k]->onMessageReceived($receiverMessages[$j][1]);
+                    }
+                }
+                for( $k=0 ; $k<count($targetReceivers) ; $k++ ) {
+                    $obj = $targetReceivers[$k];
+                    if(method_exists($obj, "onMessageGroupEnd")) {
+                        $obj->onMessageGroupEnd();
+                    }
+                }
+            }
+        }
+    }
+
+    private function _parseHeader($name, $value)
+    {
+        if (substr($name, 0, strlen(self::$HEADER_PREFIX)) == self::$HEADER_PREFIX) {
+            if (substr($name, 0, strlen(self::$HEADER_PREFIX) + 9) == self::$HEADER_PREFIX . 'protocol-') {
+                $id = "id:".substr($name, strlen(self::$HEADER_PREFIX) + 9);
+                $this->_parser_protocols[$id] = Wildfire_Protocol::factory($value);
+            } else {
+                $index = strpos($name, '-', strlen(self::$HEADER_PREFIX));
+                $id = "id:".substr($name, strlen(self::$HEADER_PREFIX), $index-strlen(self::$HEADER_PREFIX));
+                if($this->_parser_protocols[$id]) {
+                    if(isset($this->_parser_protocolBuffers[$id])) {
+                        foreach( $this->_parser_protocolBuffers[$id] as $info) {
+                            $this->_parser_protocols[$id].parse($this->_parser_buffers, $this->_parser_receivers, $this->_parser_senders, $this->_parser_messages, $info[0], $info[1]);
+                        }
+                        $this->_parser_protocolBuffers[$id] = null;
+                    }
+                    $this->_parser_protocols[$id]->parse($this->_parser_buffers, $this->_parser_receivers, $this->_parser_senders, $this->_parser_messages, substr($name, $index+1), $value);
+                } else {
+                    if(!isset($this->_parser_protocolBuffers[$id])) {
+                        $this->_parser_protocolBuffers[$id] = array();
+                    }
+                    $this->_parser_protocolBuffers[$id][] = array(substr($name, $index+1), $value);
+                }
+            }
+        } else
+        if($name=='x-request-id') {
+            $this->requestId = $value;
+        }
+    }
     
+    public function setTransport($transport)
+    {
+        $this->transport = $transport;
+    }
+        
+    abstract public function setMessagePart($key, $value);
+
     abstract public function getMessagePart($key);
     
 }
