@@ -16,6 +16,7 @@ abstract class Wildfire_Channel
     
     protected $transport = null;
 
+    protected $autoflush = false;
 
     // protocol related
     private $_parser_protocolBuffers = array();
@@ -32,9 +33,15 @@ abstract class Wildfire_Channel
         $this->options['messagePartMaxLength'] = 5000;
     }
 
-    public function enqueueOutgoing(Wildfire_Message $message)
+    public function enqueueOutgoing(Wildfire_Message $message, $bypassReceivers=false, $skipAutoflush=false)
     {
+        // TODO: Implement passing messages to registered receivers
+        
         $this->outgoingQueue[] = $this->encode($message);
+
+        if($this->autoflush===true && $skipAutoflush===false) {
+            $this->flush(false, true);
+        }
         return true;
     }
     
@@ -61,7 +68,7 @@ abstract class Wildfire_Channel
         $this->_flushListeners[] = $listener;
     }
 
-    public function flush($bypassTransport=false)
+    public function flush($bypassTransport=false, $autoflushAfter=false)
     {
         if($this->requestId) {
             $this->setMessagePart('x-request-id', $this->requestId);
@@ -98,12 +105,14 @@ abstract class Wildfire_Channel
         $this->clearOutgoing();
         
         if($this->transport && !$bypassTransport) {
-            $this->transport->flush($this);
+            $this->transport->flush($this, $this->requestId);
         }
 
         foreach( $this->_flushListeners as $listener ) {
             $listener->channelFlushed($this);
         }
+        
+        $this->autoflush = $autoflushAfter;
 
         return $count;
     }

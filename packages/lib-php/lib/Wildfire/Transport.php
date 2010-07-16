@@ -7,6 +7,8 @@ abstract class Wildfire_Transport
     const RECEIVER_ID = "http://registry.pinf.org/cadorn.org/wildfire/@meta/receiver/transport/0";
     
     protected $buffer = array();
+    
+    private $pointerMessages = array();
 
 
     public function getMessagePart($key)
@@ -22,7 +24,7 @@ abstract class Wildfire_Transport
         $this->buffer[$key] = $value;
     }
     
-    public function flush($channel)
+    public function flush($channel, $requestId)
     {
         $data = array();
         $seed = array();
@@ -32,13 +34,26 @@ abstract class Wildfire_Transport
             $data[] = $key . ": " . $value;
             if(count($data) % 3 == 0 && count($seed) < 5) $seed[] = $value;
         }
-        
+
         // generate a key for the text block
-        $key = md5(uniqid() . ":" . implode("", $seed));
+        $key = md5($requestId); //md5(uniqid() . ":" . implode("", $seed));
     
         // store the text block for future access
+        // TODO: Do not flush all data all the time (during autoflush). Some data may already be written and does not need to be written
+        //       to file over and over. Need an appendData() method?
         $this->setData($key, implode("\n", $data));
         
+        $this->sendPointerMessage($channel, $key);
+        
+        return $channel->flush(true);
+    }
+    
+    private function sendPointerMessage($channel, $key) {
+        // pointer message should only be sent once
+        if($this->pointerMessages[$key]) {
+            return;
+        }
+
         // create a pointer message to be sent instead of the original messages
         $message = new Wildfire_Message();
 
@@ -48,8 +63,9 @@ abstract class Wildfire_Transport
         $message->setData(json_encode($this->getPointerData($key)));
 
         // send the pointer message through the channel bypassing all transports and local receivers
-        $channel->enqueueOutgoing($message);
-        return $channel->flush(true);
+        $channel->enqueueOutgoing($message, false, true);
+        
+        $this->pointerMessages[$key] = $message;
     }
 
     protected function getPointerData($key) {
@@ -58,5 +74,5 @@ abstract class Wildfire_Transport
 
     abstract public function getUrl($key);
     abstract public function getData($key);
-    abstract public function setData($key, $value);    
+    abstract public function setData($key, $value);
 }
