@@ -13,11 +13,13 @@ class Wildfire_Channel_HttpHeader extends Wildfire_Channel
     
     public function getMessagePart($key)
     {
+        $key = strtolower($key);
         $headers = headers_list();
+
         if(!$headers) return false;
         foreach( $headers as $header ) {
             if(($pos = strpos($header, ":"))!==false) {
-                if(substr($header, 0, $pos)==$key) {
+                if(strtolower(substr($header, 0, $pos))==$key) {
                     return trim(substr($header, $pos+1));
                 }
             }

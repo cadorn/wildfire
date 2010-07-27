@@ -50,7 +50,7 @@ abstract class Wildfire_Transport
     
     private function sendPointerMessage($channel, $key) {
         // pointer message should only be sent once
-        if($this->pointerMessages[$key]) {
+        if(isset($this->pointerMessages[$key])) {
             return;
         }
 

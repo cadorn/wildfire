@@ -150,44 +150,47 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
     }
 
     // deliver the messages to the appropriate receivers
-    for( var receiverKey in messages ) {
+    for( var protocolId in protocols ) {
 
-        // sort messages by index
-        messages[receiverKey].sort(function(a, b) {
-            if(parseInt(a[0])>parseInt(b[0])) return 1;
-            if(parseInt(a[0])<parseInt(b[0])) return -1;
-            return 0;
-        });
-
-        // determine receiver
-        var receiverId = receivers[receiverKey];
-        // fetch receivers that support ID
-        var targetReceivers = [];
-        for( var i=0 ; i<this.receivers.length ; i++ ) {
-            if(this.receivers[i].getId()==receiverId) {
-                if(this.receivers[i]["onMessageGroupStart"]) {
-                    this.receivers[i].onMessageGroupStart(context);
+        for( var receiverKey in messages[protocolId] ) {
+    
+            // sort messages by index
+            messages[protocolId][receiverKey].sort(function(a, b) {
+                if(parseInt(a[0])>parseInt(b[0])) return 1;
+                if(parseInt(a[0])<parseInt(b[0])) return -1;
+                return 0;
+            });
+    
+            // determine receiver
+            var receiverId = receivers[protocolId][receiverKey];
+            // fetch receivers that support ID
+            var targetReceivers = [];
+            for( var i=0 ; i<this.receivers.length ; i++ ) {
+                if(this.receivers[i].getId()==receiverId) {
+                    if(this.receivers[i]["onMessageGroupStart"]) {
+                        this.receivers[i].onMessageGroupStart(context);
+                    }
+                    targetReceivers.push(this.receivers[i]);
                 }
-                targetReceivers.push(this.receivers[i]);
             }
-        }
-        if(targetReceivers.length>0) {
-            for( var j=0 ; j<messages[receiverKey].length ; j++ ) {
-                // re-write sender and receiver keys to IDs
-                messages[receiverKey][j][1].setSender(senders[receiverKey+":"+messages[receiverKey][j][1].getSender()]);
-                messages[receiverKey][j][1].setReceiver(receiverId);
+            if(targetReceivers.length>0) {
+                for( var j=0 ; j<messages[protocolId][receiverKey].length ; j++ ) {
+                    // re-write sender and receiver keys to IDs
+                    messages[protocolId][receiverKey][j][1].setSender(senders[protocolId][receiverKey+":"+messages[protocolId][receiverKey][j][1].getSender()]);
+                    messages[protocolId][receiverKey][j][1].setReceiver(receiverId);
+                    for( var k=0 ; k<targetReceivers.length ; k++ ) {
+                        targetReceivers[k].onMessageReceived(context, messages[protocolId][receiverKey][j][1]);
+                    }
+                }
                 for( var k=0 ; k<targetReceivers.length ; k++ ) {
-                    targetReceivers[k].onMessageReceived(context, messages[receiverKey][j][1]);
+                    if(targetReceivers[k]["onMessageGroupEnd"]) {
+                        targetReceivers[k].onMessageGroupEnd(context);
+                    }
                 }
+            } else
+            if(this.noReceiverCallback) {
+                this.noReceiverCallback(receiverId);
             }
-            for( var k=0 ; k<targetReceivers.length ; k++ ) {
-                if(targetReceivers[k]["onMessageGroupEnd"]) {
-                    targetReceivers[k].onMessageGroupEnd(context);
-                }
-            }
-        } else
-        if(this.noReceiverCallback) {
-            this.noReceiverCallback(receiverId);
         }
     }
 
@@ -216,13 +219,27 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
                 var id = parseInt(name.substr(self.HEADER_PREFIX.length,index-self.HEADER_PREFIX.length));
                 
                 if(protocols[id]) {
+                    
+                    if(typeof buffers[id] == "undefined") {
+                        buffers[id] = {};
+                    }
+                    if(typeof receivers[id] == "undefined") {
+                        receivers[id] = {};
+                    }
+                    if(typeof senders[id] == "undefined") {
+                        senders[id] = {};
+                    }
+                    if(typeof messages[id] == "undefined") {
+                        messages[id] = {};
+                    }
+                    
                     if(protocolBuffers[id]) {
                         protocolBuffers[id].forEach(function(info) {
-                            protocols[id].parse(buffers, receivers, senders, messages, info[0], info[1]);
+                            protocols[id].parse(buffers[id], receivers[id], senders[id], messages[id], info[0], info[1]);
                         });
                         delete protocolBuffers[id];
                     }
-                    protocols[id].parse(buffers, receivers, senders, messages, name.substr(index+1), value);
+                    protocols[id].parse(buffers[id], receivers[id], senders[id], messages[id], name.substr(index+1), value);
                 } else {
                     if(!protocolBuffers[id]) {
                         protocolBuffers[id] = [];
