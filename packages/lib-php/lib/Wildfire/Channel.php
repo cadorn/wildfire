@@ -70,6 +70,12 @@ abstract class Wildfire_Channel
 
     public function flush($bypassTransport=false, $autoflushAfter=false)
     {
+        foreach( $this->_flushListeners as $listener ) {
+            if(method_exists($listener, 'channelFlushing')) {
+                $listener->channelFlushing($this);
+            }
+        }
+
         if($this->requestId) {
             $this->setMessagePart('x-request-id', $this->requestId);
         }
@@ -109,7 +115,9 @@ abstract class Wildfire_Channel
         }
 
         foreach( $this->_flushListeners as $listener ) {
-            $listener->channelFlushed($this);
+            if(method_exists($listener, 'channelFlushed')) {
+                $listener->channelFlushed($this);
+            }
         }
         
         $this->autoflush = $autoflushAfter;
