@@ -123,7 +123,7 @@ Channel.prototype.addReceiver = function(receiver) {
 
 Channel.prototype.parseReceived = function(rawHeaders, context) {
     var self = this;
-
+    
     for( var i=0 ; i<this.receivers.length ; i++ ) {
         if(this.receivers[i]["onChannelOpen"]) {
             this.receivers[i].onChannelOpen(context);
@@ -150,6 +150,7 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
     }
 
     // deliver the messages to the appropriate receivers
+    var messageCount = 0;
     for( var protocolId in protocols ) {
 
         for( var receiverKey in messages[protocolId] ) {
@@ -180,6 +181,7 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
                     messages[protocolId][receiverKey][j][1].setReceiver(receiverId);
                     for( var k=0 ; k<targetReceivers.length ; k++ ) {
                         targetReceivers[k].onMessageReceived(context, messages[protocolId][receiverKey][j][1]);
+                        messageCount++;
                     }
                 }
                 for( var k=0 ; k<targetReceivers.length ; k++ ) {
@@ -206,6 +208,9 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
     delete receivers;
     delete senders;
     delete messages;
+
+
+    return messageCount;
     
 
     function parseHeader(name, value)
