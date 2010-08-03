@@ -233,6 +233,11 @@ TODO: implement
     {
         $this->transport = $transport;
     }
+
+    public function getTransport()
+    {
+        return $this->transport;
+    }
         
     abstract public function setMessagePart($key, $value);
 
