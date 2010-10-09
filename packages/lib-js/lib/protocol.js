@@ -281,17 +281,36 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
             } else
             if(parts[0]=='structure') {
                 if(value=="http://meta.firephp.org/Wildfire/Structure/FirePHP/FirebugConsole/0.1") {
-                    value = "http://registry.pinf.org/cadorn.org/github/fireconsole/@meta/receiver/console/0.1.0";
+                    value = "http://registry.pinf.org/cadorn.org/insight/@meta/receiver/console/page/0";
                 } else
                 if(value=="http://meta.firephp.org/Wildfire/Structure/FirePHP/Dump/0.1") {
-                    value = "http://registry.pinf.org/cadorn.org/github/fireconsole/@meta/receiver/console/0.1.0";
+                    value = "http://registry.pinf.org/cadorn.org/insight/@meta/receiver/console/page/0";
 //                    value = "http://pinf.org/cadorn.org/fireconsole/meta/Receiver/NetServer/0.1"
                 }
                 receivers[parts[1]] = value;
+                
+                // NOTE: The old protocol specifies senders independent from receivers so we need to add senders for every receiver if senders are already known
+                if(UTIL.len(senders)>0) {
+                    var newSenders = {};
+                    for( var senderKey in senders ) {
+                        var senderParts = senderKey.split(":");
+                        newSenders[parts[1] + ":" + senderParts[1]] = senders[senderKey];
+                    }
+                    UTIL.complete(senders, newSenders);
+                }
                 return;
             } else
             if(parts[0]=='plugin') {
-                senders[parts[1] + ':' + "1"] = value;
+                
+                // NOTE: The old protocol specifies senders independent from receivers so we need to add senders for every receiver
+                //       If no receiver is known yet we assume a receiver key of "1"
+                if(UTIL.len(receivers)==0) {
+                    senders["1" + ":" + parts[1]] = value;
+                } else {
+                    for( var receiverKey in receivers ) {
+                        senders[receiverKey + ":" + parts[1]] = value;
+                    }
+                }
                 return;
             }
             
@@ -365,7 +384,7 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                     }
                 }
             }
-            
+
             function enqueueMessage(index, receiver, sender, value) {
 
                 if(!messages[receiver]) {
@@ -374,7 +393,9 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
 
                 var parts = JSON.decode(value),
                     meta = {
-                        "fc.msg.preprocessor": "FirePHPCoreCompatibility"
+                        "msg.preprocessor": "FirePHPCoreCompatibility",
+                        "target": "console",
+                        "lang.id": "registry.pinf.org/cadorn.org/github/renderers/packages/php/master"
                     },
                     data;
                 
@@ -388,16 +409,16 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                         if(name=="Type") {
                             switch(parts[0][name]) {
                                 case "LOG":
-                                    meta["fc.msg.priority"] = "log";
+                                    meta["priority"] = "log";
                                     break;
                                 case "INFO":
-                                    meta["fc.msg.priority"] = "info";
+                                    meta["priority"] = "info";
                                     break;
                                 case "WARN":
-                                    meta["fc.msg.priority"] = "warn";
+                                    meta["priority"] = "warn";
                                     break;
                                 case "ERROR":
-                                    meta["fc.msg.priority"] = "error";
+                                    meta["priority"] = "error";
                                     break;
                                 case "EXCEPTION":
                                     meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#legacy/exception";
@@ -420,13 +441,13 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                             }
                         } else
                         if(name=="Label") {
-                            meta["fc.msg.label"] = parts[0][name];
+                            meta["label"] = parts[0][name];
                         } else
                         if(name=="File") {
-                            meta["fc.msg.file"] = parts[0][name];
+                            meta["file"] = parts[0][name];
                         } else
                         if(name=="Line") {
-                            meta["fc.msg.line"] = parts[0][name];
+                            meta["line"] = parts[0][name];
                         } else
                         if(name=="Collapsed") {
                             meta["fc.group.collapsed"] = parts[0][name];
@@ -443,17 +464,17 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                 }
                 
                 if(meta["fc.group.start"]) {
-                    data = meta["fc.msg.label"];
-                    delete meta["fc.msg.label"];
+                    data = meta["label"];
+                    delete meta["label"];
                 } else
                 if(meta["fc.tpl.id"] == "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#table") {
-                    if(meta["fc.msg.label"]) {
-                        data = [meta["fc.msg.label"], data];
-                        delete meta["fc.msg.label"];
+                    if(meta["label"]) {
+                        data = [meta["label"], data];
+                        delete meta["label"];
                     }
                 } else
                 if(meta["fc.tpl.id"] == "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#trace") {
-                    delete meta["fc.msg.label"];
+                    delete meta["label"];
                 }
 
 
