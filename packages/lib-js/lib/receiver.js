@@ -58,7 +58,7 @@ Receiver.prototype.onMessageGroupEnd = function(context) {
 }
 
 Receiver.prototype.onMessageReceived = function(message, context) {
-    this._dispatch("onMessageReceived", [message, context]);
+    return this._dispatch("onMessageReceived", [message, context]);
 }
 
 Receiver.prototype.addListener = function(listener) {
@@ -69,9 +69,21 @@ Receiver.prototype._dispatch = function(event, arguments) {
     if(this.listeners.length==0) {
         return;
     }
+    var returnOptions,
+        opt;
     for( var i=0 ; i<this.listeners.length ; i++ ) {
         if(this.listeners[i][event]) {
-            this.listeners[i][event].apply(this.listeners[i], arguments);
+            opt = this.listeners[i][event].apply(this.listeners[i], arguments);
+            if(opt) {
+                if(!returnOptions) {
+                    returnOptions = opt;
+                } else {
+                    for( var key in opt ) {
+                        returnOptions[key] = opt[key];
+                    }
+                }
+            }
         }
     }
+    return returnOptions;
 }

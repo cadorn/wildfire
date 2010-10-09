@@ -117,16 +117,27 @@ Channel.prototype.setNoReceiverCallback = function(callback) {
 }
 
 Channel.prototype.addReceiver = function(receiver) {
+    // avoid duplicates
+    for( var i=0 ; i<this.receivers.length ; i++ ) {
+        if(this.receivers[i]==receiver) {
+            return;
+        }
+    }
     this.receivers.push(receiver);
 }
 
-
-Channel.prototype.parseReceived = function(rawHeaders, context) {
+Channel.prototype.parseReceived = function(rawHeaders, context, options) {
     var self = this;
-    
-    for( var i=0 ; i<this.receivers.length ; i++ ) {
-        if(this.receivers[i]["onChannelOpen"]) {
-            this.receivers[i].onChannelOpen(context);
+
+    options = options || {};
+    options.skipChannelOpen = options.skipChannelOpen || false;
+    options.skipChannelClose = options.skipChannelClose || false;
+
+    if(!options.skipChannelOpen) {
+        for( var i=0 ; i<this.receivers.length ; i++ ) {
+            if(this.receivers[i]["onChannelOpen"]) {
+                this.receivers[i].onChannelOpen(context);
+            }
         }
     }
 
@@ -150,7 +161,8 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
     }
 
     // deliver the messages to the appropriate receivers
-    var messageCount = 0;
+    var messageCount = 0,
+        onMessageReceivedOptions;
     for( var protocolId in protocols ) {
 
         for( var receiverKey in messages[protocolId] ) {
@@ -180,7 +192,12 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
                     messages[protocolId][receiverKey][j][1].setSender(senders[protocolId][receiverKey+":"+messages[protocolId][receiverKey][j][1].getSender()]);
                     messages[protocolId][receiverKey][j][1].setReceiver(receiverId);
                     for( var k=0 ; k<targetReceivers.length ; k++ ) {
-                        targetReceivers[k].onMessageReceived(context, messages[protocolId][receiverKey][j][1]);
+                        onMessageReceivedOptions = targetReceivers[k].onMessageReceived(context, messages[protocolId][receiverKey][j][1]);
+                        if(onMessageReceivedOptions) {
+                            if(onMessageReceivedOptions.skipChannelClose) {
+                                options.skipChannelClose = true;
+                            }
+                        }
                         messageCount++;
                     }
                 }
@@ -196,12 +213,14 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
         }
     }
 
-    for( var i=0 ; i<this.receivers.length ; i++ ) {
-        if(this.receivers[i]["onChannelClose"]) {
-            this.receivers[i].onChannelClose(context);
+    if(!options.skipChannelClose) {
+        for( var i=0 ; i<this.receivers.length ; i++ ) {
+            if(this.receivers[i]["onChannelClose"]) {
+                this.receivers[i].onChannelClose(context);
+            }
         }
     }
-    
+
     // cleanup - does this help with gc?
     delete buffers;
     delete protocols;

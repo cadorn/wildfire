@@ -94,10 +94,14 @@ exports.newReceiver = function(channel) {
     receiver.addListener({
         onMessageReceived: function(context, message) {
             try {
-                // make a secondary request
+                context.transporter = RECEIVER_ID;
+                // make a sync secondary request
                 var data = HTTP.read(JSON.decode(message.getData()).url);
                 if(data) {
-                    channel.parseReceived(data, context);
+                    channel.parseReceived(data, context, {
+                        "skipChannelOpen": true,
+                        "skipChannelClose": true
+                    });
                 }
             } catch(e) {
                 system.log.warn(e);
