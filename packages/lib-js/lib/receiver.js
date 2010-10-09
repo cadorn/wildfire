@@ -4,14 +4,41 @@ var Receiver = exports.Receiver = function () {
         return new exports.Receiver();
 
     this.listeners = [];
+    this.ids = [];
 }
     
 Receiver.prototype.setId = function(id) {
-    this.id = id;
+    if(this.ids.length > 0) {
+        throw new Error("ID already set for receiver!");
+    }
+    this.ids.push(id);
 }
 
+Receiver.prototype.addId = function(id) {
+    this.ids.push(id);
+}
+
+/**
+ * @deprecated
+ */
 Receiver.prototype.getId = function() {
-    return this.id;
+    if(this.ids.length > 1) {
+        throw new Error("DEPRECATED: Multiple IDs for receiver. Cannot use getId(). Use getIds() instead!");
+    }
+    return this.ids[0];
+}
+
+Receiver.prototype.getIds = function() {
+    return this.ids;
+}
+
+Receiver.prototype.hasId = function(id) {
+    for( var i=0 ; i<this.ids.length ; i++ ) {
+        if(this.ids[i]==id) {
+            return true;
+        }
+    }
+    return false;
 }
 
 Receiver.prototype.onChannelOpen = function(context) {

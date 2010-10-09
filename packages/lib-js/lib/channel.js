@@ -30,7 +30,7 @@ Channel.prototype.enqueueOutgoing = function(message, bypassReceivers) {
         // enqueue the message if receiver.onMessageReceived returns FALSE.
         var enqueue = true;
         for( var i=0 ; i<this.receivers.length ; i++ ) {
-            if(this.receivers[i].getId()==message.getReceiver()) {
+            if(this.receivers[i].hasId(message.getReceiver())) {
                 if(!this.receivers[i].onMessageReceived(null, message)) enqueue = false;
             }
         }
@@ -167,7 +167,7 @@ Channel.prototype.parseReceived = function(rawHeaders, context) {
             // fetch receivers that support ID
             var targetReceivers = [];
             for( var i=0 ; i<this.receivers.length ; i++ ) {
-                if(this.receivers[i].getId()==receiverId) {
+                if(this.receivers[i].hasId(receiverId)) {
                     if(this.receivers[i]["onMessageGroupStart"]) {
                         this.receivers[i].onMessageGroupStart(context);
                     }
