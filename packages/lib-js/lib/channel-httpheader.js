@@ -31,13 +31,21 @@ HttpHeaderChannel.prototype.getFirebugNetMonitorListener = function() {
             {
                 if(file) {
                     try {
-                        // TODO: parse out x-request-id from response headers
+                        
+                        var requestId = false;
+                        for( var i=file.requestHeaders.length-1 ; i>=0 ; i-- ) {
+                            if(file.requestHeaders[i].name=="x-request-id") {
+                                requestId = file.requestHeaders[i].value;
+                                break;
+                            }
+                        }
+
                         self.parseReceived(file.responseHeaders, {
                             "FirebugNetMonitorListener": {
                                 "context": context,
                                 "file": file
                             },
-                            "id": "id:" + file.href + ":" + requestIndex++,
+                            "id": requestId || "id:" + file.href + ":" + requestIndex++,
                             "url": file.href,
                             "method": file.method,
                             "requestHeaders": file.requestHeaders
@@ -64,21 +72,21 @@ HttpHeaderChannel.prototype.getMozillaRequestObserverListener = function() {
 
                     try {
                         var requestHeaders = [];
+                        var requestId;
                         httpChannel.visitRequestHeaders({
                             visitHeader: function(name, value)
                             {
                                 requestHeaders.push({name: name, value: value});
+                                if(name.toLowerCase()=="x-request-id") {
+                                    requestId = value;
+                                }
                             }
                         });
                         var responseHeaders = [];
-                        var requestId;
                         httpChannel.visitResponseHeaders({
                             visitHeader: function(name, value)
                             {
                                 responseHeaders.push({name: name, value: value});
-                                if(name.toLowerCase()=="x-request-id") {
-                                    requestId = value;
-                                }
                             }
                         });
                         self.parseReceived(responseHeaders, {

@@ -56,7 +56,7 @@ Channel.prototype.flush = function(applicator, bypassTransport) {
 
     // set request ID if not set
     if(!applicator.getMessagePart("x-request-id")) {
-        applicator.setMessagePart("x-request-id", (new Date().getTime()) + "" + Math.floor(Math.random()*1000+1) );
+        applicator.setMessagePart("x-request-id", ""+(new Date().getTime()) + "" + Math.floor(Math.random()*1000+1) );
     }
 
     var messages = this.getOutgoing();
