@@ -267,6 +267,8 @@ protocols["__TEST__"] = function(uri) {
 // @see http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/json-stream/0.2.0
 protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) {
 
+    var groupStack = 0;
+
     return {
         parse: function(buffers, receivers, senders, messages, key, value) {
 
@@ -407,6 +409,11 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
 
                     for( var name in parts[0] ) {
                         if(name=="Type") {
+
+                            if(groupStack>0) {
+                                meta["group"] = "group-" + groupStack;
+                            }
+
                             switch(parts[0][name]) {
                                 case "LOG":
                                     meta["priority"] = "log";
@@ -421,19 +428,56 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                                     meta["priority"] = "error";
                                     break;
                                 case "EXCEPTION":
-                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#legacy/exception";
+                                    data = {
+                                        "__className": data.Class,
+                                        "__isException": true,
+                                        "protected:message": data.Message,
+                                        "protected:file": data.File,
+                                        "protected:line": data.Line,
+                                        "private:trace": data.Trace
+                                    }
+                                    meta["priority"] = "error";
                                     break;
                                 case "TRACE":
-                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#legacy/trace";
+                                    meta["renderer"] = "http://registry.pinf.org/cadorn.org/renderers/packages/insight/0:structures/trace";
+                                    var trace = [
+                                        {
+                                            "class": data.Class || "",
+                                            "type": data.Type || "",
+                                            "function": data.Function || "",
+                                            "file": data.File || "",
+                                            "line": data.Line || "",
+                                            "args": data.Args || ""
+                                        }
+                                    ];
+                                    if(data.Trace) {
+                                        trace = trace.concat(data.Trace);
+                                    }
+                                    data = {
+                                        "title": data.Message,
+                                        "trace": trace
+                                    };
                                     break;
                                 case "TABLE":
-                                    meta["fc.tpl.id"] = "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#legacy/table";
+                                    meta["renderer"] = "http://registry.pinf.org/cadorn.org/renderers/packages/insight/0:structures/table";
+                                    data = {"data": data};
+                                    if(data.data.length==2 && typeof data.data[0] == "string") {
+                                        data.header = data.data[1].splice(0,1)[0];
+                                        data.title = data.data[0];
+                                        data.data = data.data[1];
+                                    } else {
+                                        data.header = data.data.splice(0,1)[0];
+                                    }
                                     break;
                                 case "GROUP_START":
-                                    meta["fc.group.start"] = true;
+                                    groupStack++;
+                                    meta["group.start"] = true;
+                                    meta["group"] = "group-" + groupStack;
                                     break;
                                 case "GROUP_END":
-                                    meta["fc.group.end"] = true;
+                                    meta["group"] = "group-" + groupStack;
+                                    meta["group.end"] = true;
+                                    groupStack--;
                                     break;
                                 default:
                                     throw new Error("Log type '" + parts[0][name] + "' not implemented");
@@ -460,23 +504,19 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                 // dump
                 {
                     data = parts;
-                    meta["fc.msg.label"] = "Dump";
+                    meta["label"] = "Dump";
                 }
                 
-                if(meta["fc.group.start"]) {
-                    data = meta["label"];
-                    delete meta["label"];
-                } else
-                if(meta["fc.tpl.id"] == "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#table") {
+                if(meta["renderer"] == "http://registry.pinf.org/cadorn.org/renderers/packages/insight/0:structures/table") {
                     if(meta["label"]) {
-                        data = [meta["label"], data];
+                        data.title = meta["label"];
                         delete meta["label"];
                     }
                 } else
-                if(meta["fc.tpl.id"] == "registry.pinf.org/cadorn.org/github/fireconsole-template-packs/packages/lang-php/master#trace") {
+                if(meta["group.start"]) {
+                    meta["group.title"] = meta["label"];
                     delete meta["label"];
                 }
-
 
                 var message = MESSAGE.Message();
                 message.setReceiver(receiver);
@@ -676,7 +716,7 @@ protocols["http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/announce/
                     }
                 }
             }
-        
+
             function getMessageIndex(protocolIndex) {
                 var value = util["messageIndexes"][protocolIndex] || util.applicator.getMessagePart(util.HEADER_PREFIX + protocolIndex + "-index");
                 if(!value) {
