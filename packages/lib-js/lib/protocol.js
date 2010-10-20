@@ -268,6 +268,7 @@ protocols["__TEST__"] = function(uri) {
 protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) {
 
     var groupStack = 0;
+    var groupIndex = 0;
 
     return {
         parse: function(buffers, receivers, senders, messages, key, value) {
@@ -411,7 +412,7 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                         if(name=="Type") {
 
                             if(groupStack>0) {
-                                meta["group"] = "group-" + groupStack;
+                                meta["group"] = "group-" + groupIndex + "-" + groupStack;
                             }
 
                             switch(parts[0][name]) {
@@ -470,12 +471,13 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                                     }
                                     break;
                                 case "GROUP_START":
+                                    groupIndex++;
                                     groupStack++;
                                     meta["group.start"] = true;
-                                    meta["group"] = "group-" + groupStack;
+                                    meta["group"] = "group-" + groupIndex + "-" + groupStack;
                                     break;
                                 case "GROUP_END":
-                                    meta["group"] = "group-" + groupStack;
+                                    meta["group"] = "group-" + groupIndex + "-" + groupStack;
                                     meta["group.end"] = true;
                                     groupStack--;
                                     break;
@@ -492,12 +494,12 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                         } else
                         if(name=="Line") {
                             meta["line"] = parts[0][name];
-                        } else
-                        if(name=="Collapsed") {
-                            meta["fc.group.collapsed"] = parts[0][name];
-                        } else
-                        if(name=="Color") {
-                            meta["fc.group.color"] = parts[0][name];
+//                        } else
+//                        if(name=="Collapsed") {
+//                            meta["fc.group.collapsed"] = parts[0][name];
+//                        } else
+//                        if(name=="Color") {
+//                            meta["fc.group.color"] = parts[0][name];
                         }
                     }                    
                 } else
