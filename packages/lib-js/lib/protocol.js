@@ -267,7 +267,7 @@ protocols["__TEST__"] = function(uri) {
 // @see http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/json-stream/0.2.0
 protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) {
 
-    var groupStack = 0;
+    var groupStack = [];
     var groupIndex = 0;
 
     return {
@@ -411,8 +411,8 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                     for( var name in parts[0] ) {
                         if(name=="Type") {
 
-                            if(groupStack>0) {
-                                meta["group"] = "group-" + groupIndex + "-" + groupStack;
+                            if(groupStack.length>0) {
+                                meta["group"] = groupStack[groupStack.length-1];
                             }
 
                             switch(parts[0][name]) {
@@ -472,14 +472,15 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                                     break;
                                 case "GROUP_START":
                                     groupIndex++;
-                                    groupStack++;
                                     meta["group.start"] = true;
-                                    meta["group"] = "group-" + groupIndex + "-" + groupStack;
+                                    meta["group"] = "group-" + groupIndex;
+                                    groupStack.push("group-" + groupIndex);
                                     break;
                                 case "GROUP_END":
-                                    meta["group"] = "group-" + groupIndex + "-" + groupStack;
                                     meta["group.end"] = true;
-                                    groupStack--;
+                                    if(groupStack.length>0) {
+                                        groupStack.pop();
+                                    }
                                     break;
                                 default:
                                     throw new Error("Log type '" + parts[0][name] + "' not implemented");
