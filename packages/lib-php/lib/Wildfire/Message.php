@@ -28,9 +28,6 @@ class Wildfire_Message
             if(!is_string($meta)) {
                 throw new Exception('$meta is not a string');
             }
-            if(json_decode($meta)===null) {
-                throw new Exception('$meta is not a JSON string');
-            }
         }
         $this->meta = $meta;
     }   

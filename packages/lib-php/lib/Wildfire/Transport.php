@@ -1,5 +1,6 @@
 <?php
 
+require_once('Wildfire/Util.php');
 require_once('Wildfire/Message.php');
 
 abstract class Wildfire_Transport
@@ -47,7 +48,7 @@ abstract class Wildfire_Transport
         
         return $channel->flush(true);
     }
-    
+
     private function sendPointerMessage($channel, $key) {
         // pointer message should only be sent once
         if(isset($this->pointerMessages[$key])) {
@@ -60,7 +61,7 @@ abstract class Wildfire_Transport
         $message->setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
         $message->setSender('http://registry.pinf.org/cadorn.org/wildfire/packages/lib-php/lib/Wildfire/Transport.php');
         $message->setReceiver(self::RECEIVER_ID);
-        $message->setData(json_encode($this->getPointerData($key)));
+        $message->setData(Wildfire_Util::json_encode($this->getPointerData($key)));
 
         // send the pointer message through the channel bypassing all transports and local receivers
         $channel->enqueueOutgoing($message, false, true);
