@@ -1,6 +1,9 @@
 
 function dump(obj) { print(require('test/jsdump').jsDump.parse(obj)) };
 
+var TRACING_CONSOLE = require("tracing-console", "registry.pinf.org/cadorn.org/github/fireconsole/packages/firefox-extension/packages/firebug/master");
+
+var UTIL = require("util");
 var PROTOCOL = require("./protocol");
 var TRANSPORT = require("./transport");
 
@@ -158,6 +161,30 @@ Channel.prototype.parseReceived = function(rawHeaders, context, options) {
     // parse the raw headers into messages
     for( var i in rawHeaders ) {
         parseHeader(rawHeaders[i].name.toLowerCase(), rawHeaders[i].value);
+    }
+
+    // empty any remaining buffers in case protocol header was last
+    if(protocolBuffers) {
+        UTIL.forEach(protocolBuffers, function(item) {
+            if(protocols[item[0]]) {
+                if(typeof buffers[item[0]] == "undefined") {
+                    buffers[item[0]] = {};
+                }
+                if(typeof receivers[item[0]] == "undefined") {
+                    receivers[item[0]] = {};
+                }
+                if(typeof senders[item[0]] == "undefined") {
+                    senders[item[0]] = {};
+                }
+                if(typeof messages[item[0]] == "undefined") {
+                    messages[item[0]] = {};
+                }
+                item[1].forEach(function(info) {
+                    protocols[item[0]].parse(buffers[item[0]], receivers[item[0]], senders[item[0]], messages[item[0]], info[0], info[1]);
+                });
+                delete protocolBuffers[item[0]];
+            }
+        });
     }
 
     // deliver the messages to the appropriate receivers

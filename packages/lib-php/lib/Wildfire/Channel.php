@@ -95,7 +95,7 @@ abstract class Wildfire_Channel
             $util['applicator'] = $this->transport;
         }
                 
-        // encode messages and write to headers        
+        // encode messages and write to headers
         foreach( $messages as $message ) {
             $headers = $message;
             foreach( $headers as $header ) {
@@ -134,15 +134,28 @@ abstract class Wildfire_Channel
         return Wildfire_Protocol::factory($protocol_id)->encodeMessage($this->options, $message);
     }
 
-    public function addReceiver($receiver) {
+    public function addReceiver($receiver)
+    {
         $this->receivers[] = $receiver;
     }
 
-    public function parseReceived($rawHeaders) {
-
+    public function parseReceived($rawHeaders)
+    {
         // parse the raw headers into messages
         foreach( $rawHeaders as $name => $value ) {
             $this->_parseHeader(strtolower($name), $value);
+        }
+
+        // empty any remaining buffers in case protocol header was last
+        if($this->_parser_protocolBuffers) {
+            foreach( $this->_parser_protocolBuffers as $id => $buffers ) {
+                if($this->_parser_protocols[$id]) {
+                    foreach( $buffers as $info) {
+                        $this->_parser_protocols[$id]->parse($this->_parser_buffers, $this->_parser_receivers, $this->_parser_senders, $this->_parser_messages, $info[0], $info[1]);
+                    }
+                    unset($this->_parser_protocolBuffers[$id]);
+                }
+            }
         }
 
         // deliver the messages to the appropriate receivers
@@ -211,9 +224,9 @@ TODO: implement
                 if($this->_parser_protocols[$id]) {
                     if(isset($this->_parser_protocolBuffers[$id])) {
                         foreach( $this->_parser_protocolBuffers[$id] as $info) {
-                            $this->_parser_protocols[$id].parse($this->_parser_buffers, $this->_parser_receivers, $this->_parser_senders, $this->_parser_messages, $info[0], $info[1]);
+                            $this->_parser_protocols[$id]->parse($this->_parser_buffers, $this->_parser_receivers, $this->_parser_senders, $this->_parser_messages, $info[0], $info[1]);
                         }
-                        $this->_parser_protocolBuffers[$id] = null;
+                        unset($this->_parser_protocolBuffers[$id]);
                     }
                     $this->_parser_protocols[$id]->parse($this->_parser_buffers, $this->_parser_receivers, $this->_parser_senders, $this->_parser_messages, substr($name, $index+1), $value);
                 } else {
