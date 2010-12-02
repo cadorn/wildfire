@@ -48,6 +48,7 @@ HttpHeaderChannel.prototype.getFirebugNetMonitorListener = function() {
                             "id": requestId || "id:" + file.href + ":" + requestIndex++,
                             "url": file.href,
                             // TODO: add "hostname" (file.request.URI.host?)
+                            // TODO: add "port" (file.request.URI.port?)
                             "method": file.method,
                             "requestHeaders": file.requestHeaders
                         });
@@ -97,6 +98,7 @@ HttpHeaderChannel.prototype.getMozillaRequestObserverListener = function() {
                             "id": requestId || "id:" + httpChannel.URI.spec + ":" + requestIndex++,
                             "url": httpChannel.URI.spec,
                             "hostname": httpChannel.URI.host,
+                            "port": httpChannel.URI.port,
                             "method": httpChannel.requestMethod,
                             "requestHeaders": requestHeaders
                         });

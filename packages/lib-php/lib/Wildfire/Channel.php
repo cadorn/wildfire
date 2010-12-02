@@ -221,7 +221,7 @@ TODO: implement
             } else {
                 $index = strpos($name, '-', strlen(self::$HEADER_PREFIX));
                 $id = "id:".substr($name, strlen(self::$HEADER_PREFIX), $index-strlen(self::$HEADER_PREFIX));
-                if($this->_parser_protocols[$id]) {
+                if(isset($this->_parser_protocols[$id])) {
                     if(isset($this->_parser_protocolBuffers[$id])) {
                         foreach( $this->_parser_protocolBuffers[$id] as $info) {
                             $this->_parser_protocols[$id]->parse($this->_parser_buffers, $this->_parser_receivers, $this->_parser_senders, $this->_parser_messages, $info[0], $info[1]);
