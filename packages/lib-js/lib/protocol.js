@@ -126,8 +126,9 @@ protocols["__TEST__"] = function(uri) {
                 var message = MESSAGE.Message();
                 message.setReceiver(receiver);
                 message.setSender(sender);
-                message.setMeta((m[1])?m[1].replace("&#124;", "|"):null);
-                message.setData(m[2].replace("&#124;", "|"));
+                message.setMeta((m[1])?m[1].replace(/&#124;/g, "|"):null);
+                message.setData(m[2].replace(/&#124;/g, "|"));
+                message.setProtocol('http://registry.pinf.org/cadorn.org/wildfire/@meta/protocol/component/0.1.0');
                 
                 messages[receiver].push([index, message]);
             }

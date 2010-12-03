@@ -44,7 +44,30 @@ abstract class Wildfire_Channel
         }
         return true;
     }
-    
+
+    public function relayData($data, $receivers=array())
+    {
+        $data = explode("\n", $data);
+        $headers = array();
+        foreach( $data as $header ) {
+            $index = strpos($header, ":");
+            if($index>5) {  // sanity check
+                $headers[substr($header, 0, $index)] = trim(substr($header, $index+1));
+            }
+        }
+        require_once('Wildfire/Channel/Dummy.php');
+        $dummyChannel = new Wildfire_Channel_Dummy();
+        require_once('Wildfire/Receiver/Relay.php');
+        $receiver = new Wildfire_Receiver_Relay();
+        $receiver->setChannel($dummyChannel);
+        foreach( $receivers as $id ) {
+            $receiver->addId($id);
+        }
+        $receiver->setTargetChannel($this);
+        $dummyChannel->parseReceived($headers);
+    }
+
+
     public function getOutgoing()
     {
         return $this->outgoingQueue;
@@ -181,7 +204,7 @@ TODO: implement
             // fetch receivers that support ID
             $targetReceivers = array();
             for( $i=0 ; $i<count($this->receivers) ; $i++ ) {
-                if($receiverKey=='*' || $this->receivers[$i]->getId()==$receiverId) {
+                if($receiverKey=='*' || $this->receivers[$i]->hasId($receiverId)) {
 
                     $obj = $this->receivers[$i];
                     if(method_exists($obj, "onMessageGroupStart")) {
