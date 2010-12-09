@@ -47,24 +47,16 @@ abstract class Wildfire_Channel
 
     public function relayData($data, $receivers=array())
     {
-        $data = explode("\n", $data);
-        $headers = array();
-        foreach( $data as $header ) {
-            $index = strpos($header, ":");
-            if($index>5) {  // sanity check
-                $headers[substr($header, 0, $index)] = trim(substr($header, $index+1));
-            }
-        }
-        require_once('Wildfire/Channel/Dummy.php');
-        $dummyChannel = new Wildfire_Channel_Dummy();
+        require_once('Wildfire/Channel/Memory.php');
+        $memoryChannel = new Wildfire_Channel_Memory();
         require_once('Wildfire/Receiver/Relay.php');
         $receiver = new Wildfire_Receiver_Relay();
-        $receiver->setChannel($dummyChannel);
+        $receiver->setChannel($memoryChannel);
         foreach( $receivers as $id ) {
             $receiver->addId($id);
         }
         $receiver->setTargetChannel($this);
-        $dummyChannel->parseReceived($headers);
+        $memoryChannel->parseReceived($data);
     }
 
 
@@ -164,6 +156,17 @@ abstract class Wildfire_Channel
 
     public function parseReceived($rawHeaders)
     {
+        if(is_string($rawHeaders)) {
+            $data = explode("\n", $rawHeaders);
+            $rawHeaders = array();
+            foreach( $data as $header ) {
+                $index = strpos($header, ":");
+                if($index>5) {  // sanity check
+                    $rawHeaders[substr($header, 0, $index)] = trim(substr($header, $index+1));
+                }
+            }
+        }
+
         // parse the raw headers into messages
         foreach( $rawHeaders as $name => $value ) {
             $this->_parseHeader(strtolower($name), $value);
