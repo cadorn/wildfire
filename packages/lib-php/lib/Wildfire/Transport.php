@@ -28,12 +28,12 @@ abstract class Wildfire_Transport
     public function flush($channel, $requestId)
     {
         $data = array();
-        $seed = array();
+//        $seed = array();
     
         // combine all message parts into one text block
         foreach( $this->buffer as $key => $value ) {
             $data[] = $key . ": " . $value;
-            if(count($data) % 3 == 0 && count($seed) < 5) $seed[] = $value;
+//            if(count($data) % 3 == 0 && count($seed) < 5) $seed[] = $value;
         }
 
         // generate a key for the text block
