@@ -496,9 +496,9 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                         } else
                         if(name=="Line") {
                             meta["line"] = parts[0][name];
-//                        } else
-//                        if(name=="Collapsed") {
-//                            meta["fc.group.collapsed"] = parts[0][name];
+                        } else
+                        if(name=="Collapsed") {
+                            meta[".collapsed"] = (parts[0][name]=='true')?true:false;
 //                        } else
 //                        if(name=="Color") {
 //                            meta["fc.group.color"] = parts[0][name];
@@ -520,6 +520,10 @@ protocols["http://meta.wildfirehq.org/Protocol/JsonStream/0.2"] = function(uri) 
                 if(meta["group.start"]) {
                     meta["group.title"] = meta["label"];
                     delete meta["label"];
+                    if(typeof meta[".collapsed"] == "undefined" || !meta[".collapsed"]) {
+                        meta["group.expand"] = meta["group"];
+                    }
+                    delete meta[".collapsed"];
                 }
 
                 var message = MESSAGE.Message();
