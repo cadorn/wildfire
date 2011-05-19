@@ -140,11 +140,11 @@ class Wildfire_Protocol_Component extends Wildfire_Protocol
             if(!$meta) {
                 $meta = '';
             }
-    
-            $data = str_replace('|', '&#124;', $meta) . '|' . str_replace('|', '&#124;', $message->getData());
+
+            $data = str_replace('|', '\\|', $meta) . '|' . $message->getData();
 
             $parts = explode(self::CHUMK_DELIM, chunk_split($data, $options['messagePartMaxLength'], self::CHUMK_DELIM));
-    
+
             for ($i=0 ; $i<count($parts) ; $i++) {
     
                 $part = $parts[$i];
