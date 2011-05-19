@@ -54,8 +54,8 @@ class Wildfire_Channel_HttpClient extends Wildfire_Channel implements Wildfire_C
                 if($result) {
                     try {
                         $result = json_decode($result, true);
-                        if(result && isset($result['status'])) {
-                            if($result['status']=='OK') {
+                        if(result && isset($result['success'])) {
+                            if($result['success']===true) {
                                 // all good
                             }
                         } else {
