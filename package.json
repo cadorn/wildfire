@@ -1,6 +1,7 @@
 {
     "uid": "http://registry.pinf.org/cadorn.org/github/wildfire/",
     "name": "wildfire",
+    "label": "Wildfire Libraries",
     "repositories": [
         {
             "type": "git",
