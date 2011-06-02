@@ -1,8 +1,5 @@
 <?php
 
-require_once 'Wildfire/Channel.php';
-require_once 'Wildfire/Channel/FlushListener.php';
-
 class Wildfire_Channel_HttpClient extends Wildfire_Channel implements Wildfire_Channel_FlushListener
 {
     private $host = dalse;

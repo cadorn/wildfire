@@ -1,8 +1,5 @@
 <?php
 
-require_once 'Wildfire/Protocol.php';
-require_once 'Wildfire/Message.php';
-
 class Wildfire_Protocol_Announce extends Wildfire_Protocol
 {    
 

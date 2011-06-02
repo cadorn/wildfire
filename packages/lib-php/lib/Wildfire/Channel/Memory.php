@@ -1,7 +1,5 @@
 <?php
 
-require_once 'Wildfire/Channel.php';
-
 class Wildfire_Channel_Memory extends Wildfire_Channel
 {
     private $headers = array();

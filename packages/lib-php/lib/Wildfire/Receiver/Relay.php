@@ -1,7 +1,5 @@
 <?php
 
-require_once('Wildfire/Receiver.php');
-
 class Wildfire_Receiver_Relay extends Wildfire_Receiver
 {
     private $targetChannel = null;

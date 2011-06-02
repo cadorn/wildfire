@@ -1,8 +1,5 @@
 <?php
 
-require_once 'Wildfire/Protocol.php';
-require_once 'Wildfire/Transport.php';
-
 abstract class Wildfire_Channel
 {
     private static $HEADER_PREFIX = "x-wf-";
@@ -47,9 +44,7 @@ abstract class Wildfire_Channel
 
     public function relayData($data, $receivers=array())
     {
-        require_once('Wildfire/Channel/Memory.php');
         $memoryChannel = new Wildfire_Channel_Memory();
-        require_once('Wildfire/Receiver/Relay.php');
         $receiver = new Wildfire_Receiver_Relay();
         $receiver->setChannel($memoryChannel);
         foreach( $receivers as $id ) {

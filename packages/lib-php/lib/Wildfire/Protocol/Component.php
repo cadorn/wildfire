@@ -1,8 +1,5 @@
 <?php
 
-require_once 'Wildfire/Protocol.php';
-require_once 'Wildfire/Message.php';
-
 function Wildfire_Protocol_Component__parse__enqueueBuffer__sort($a, $b) {
     return $a[0] - $b[0];
 }

@@ -1,8 +1,5 @@
 <?php
 
-require_once('Wildfire/Util.php');
-require_once('Wildfire/Message.php');
-
 abstract class Wildfire_Transport
 {
     const RECEIVER_ID = "http://registry.pinf.org/cadorn.org/wildfire/@meta/receiver/transport/0";

@@ -22,7 +22,6 @@ abstract class Wildfire_Protocol
                 throw new Exception('Unknown protocol: ' . $uri);
                 break;
         }
-        require_once(str_replace('_', '/', $class) . '.php');
         return (self::$protocols[$uri] = new $class($uri));
     }
 

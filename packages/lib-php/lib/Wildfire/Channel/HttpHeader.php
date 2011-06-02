@@ -1,7 +1,5 @@
 <?php
 
-require_once 'Wildfire/Channel.php';
-
 class Wildfire_Channel_HttpHeader extends Wildfire_Channel
 {
 
